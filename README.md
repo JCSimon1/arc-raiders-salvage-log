@@ -1,42 +1,42 @@
-# ARC LOG — Rundentracker für Arc Raiders
+# ARC LOG — Match Tracker for Arc Raiders
 
-Self-hosted Web-App zum Tracken von Arc-Raiders-Runden (Map, Condition, $ und XP)
-mit Auswertungen pro Map, pro Map Condition und monatlich.
+Self-hosted web app for tracking Arc Raiders matches (map, condition, currency, and XP)
+with analytics broken down by map, map condition, and month.
 
-**Stack:** nginx (Frontend) → Express-API → PostgreSQL, alles via Docker Compose.
+**Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.
 
-## Schnellstart
+## Quick Start
 
 ```bash
 cp .env.example .env
-# .env anpassen (POSTGRES_PASSWORD, WEB_PORT)
+# Edit .env (POSTGRES_PASSWORD, WEB_PORT)
 
 docker compose up -d --build
 ```
 
-Danach ist die App unter `http://localhost:8080` (bzw. dem in `WEB_PORT` gesetzten Port) erreichbar.
+The app will then be accessible at `http://localhost:8080` (or the port specified in `WEB_PORT`).
 
-## Architektur
+## Architecture
 
 ```
-web/   → nginx, liefert das Frontend aus und proxyt /api/ an die API
-api/   → Node/Express-API, spricht mit Postgres
-db     → postgres:16-alpine, Daten liegen im Volume "db_data"
+web/   → nginx, serves the frontend and proxies /api/ requests to the API
+api/   → Node/Express API, communicates with Postgres
+db     → postgres:16-alpine, data stored in the "db_data" volume
 ```
 
-## Daten sichern
+## Backing Up Data
 
 ```bash
 docker compose exec db pg_dump -U arclog arclog > backup.sql
 ```
 
-## Update
+## Updating
 
 ```bash
 git pull
 docker compose up -d --build
 ```
 
-## Lizenz
+## License
 
-MIT, siehe [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE).
