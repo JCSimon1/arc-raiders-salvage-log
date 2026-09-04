@@ -13,7 +13,7 @@
 
 # ARC LOG — Match Tracker for Arc Raiders
 
-Self-hosted web app for tracking Arc Raiders matches (map, condition, currency, and XP)
+Self-hosted simple web app for tracking Arc Raiders matches (map, condition, currency, and XP)
 with analytics broken down by map, map condition, and month.
 
 **Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.
@@ -80,8 +80,27 @@ git pull
 docker compose up -d --build
 ```
 
-##
+## Features
 
+- Log a run / round
+- Overview of last runs
+- Show statistics
+  - No. of rounds, total/avg. $ earned, total XP
+  - Best rounds ($ earned / XP earned)
+  - Diagrams
+    - By Map
+    - By Condition
+    - Monthly
+- Language support for English and German
+
+## Screenshots
+### Log a run
+![Screenshot - Log a run](docs/screenshots/arc_raiders_salvage_log_screenshot_log_run.png)
+
+### Overview
+![Screenshot - Overview](docs/screenshots/arc_raiders_salvage_log_screenshot_overview.png)
+
+### Stats
 ![Screenshot - Stats](docs/screenshots/arc_raiders_salvage_log_screenshot_stats.png)
 
 
