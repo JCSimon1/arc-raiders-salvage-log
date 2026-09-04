@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARC LOG — Rundentracker</title>
+<title>ARC LOG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -45,6 +45,7 @@
     display:flex;justify-content:space-between;align-items:flex-end;
     padding-bottom:18px;margin-bottom:22px;
     border-bottom:1px solid var(--border);
+    gap:16px;flex-wrap:wrap;
   }
   .brand{display:flex;align-items:baseline;gap:12px;}
   .brand-mark{
@@ -53,14 +54,28 @@
   }
   .brand-mark span{color:var(--accent);}
   .brand-tag{font-size:12.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-faint);margin-right:6px;}
+  .status-dot.ok{background:var(--positive);}
+  .status-dot.err{background:var(--negative);}
+
+  .header-right{display:flex;align-items:center;gap:22px;}
+  .lang-toggle{display:flex;gap:6px;}
+  .lang-toggle button{
+    background:var(--panel-alt);border:1px solid var(--border);
+    border-radius:var(--radius);cursor:pointer;
+    width:34px;height:26px;font-size:15px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    opacity:.5;transition:opacity .15s ease, border-color .15s ease;
+    padding:0;
+  }
+  .lang-toggle button:hover{opacity:.8;}
+  .lang-toggle button.active{opacity:1;border-color:var(--accent-dim);}
+
   .run-count{
     font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text-muted);
     text-align:right;
   }
   .run-count b{color:var(--accent);font-size:16px;font-weight:600;}
-  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-faint);margin-right:6px;}
-  .status-dot.ok{background:var(--positive);}
-  .status-dot.err{background:var(--negative);}
 
   nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
   nav.tabs button{
@@ -102,6 +117,7 @@
     border-radius:var(--radius);
     outline:none;
     transition:border-color .15s ease;
+    width:100%;
   }
   .field input::placeholder{color:var(--text-faint);font-family:'IBM Plex Sans',sans-serif;}
   .field input:focus, .field select:focus{border-color:var(--accent-2);}
@@ -184,6 +200,7 @@
     .field.span-2{grid-column:span 2;}
     .stat-row{grid-template-columns:repeat(2,1fr);}
     header{flex-direction:column;align-items:flex-start;gap:10px;}
+    .header-right{width:100%;justify-content:space-between;}
   }
 </style>
 </head>
@@ -193,36 +210,42 @@
   <header>
     <div class="brand">
       <div class="brand-mark">ARC <span>LOG</span></div>
-      <div class="brand-tag"><span class="status-dot" id="statusDot"></span>RUNDENTRACKER</div>
+      <div class="brand-tag"><span class="status-dot" id="statusDot"></span><span data-i18n="brandTag"></span></div>
     </div>
-    <div class="run-count">RUNDEN GESAMT<br><b id="runCountVal">0</b></div>
+    <div class="header-right">
+      <div class="lang-toggle">
+        <button id="langDE" title="Deutsch">DE</button>
+        <button id="langEN" title="English">EN</button>
+      </div>
+      <div class="run-count"><span data-i18n="runCountLabel"></span><br><b id="runCountVal">0</b></div>
+    </div>
   </header>
 
   <nav class="tabs">
-    <button class="active" data-view="entry">Erfassen</button>
-    <button data-view="list">Übersicht</button>
-    <button data-view="analysis">Auswertung</button>
+    <button class="active" data-view="entry" data-i18n="navEntry"></button>
+    <button data-view="list" data-i18n="navList"></button>
+    <button data-view="analysis" data-i18n="navAnalysis"></button>
   </nav>
 
   <div class="view active" id="view-entry">
     <div class="panel">
-      <h2 class="panel-title">Neue Runde eintragen</h2>
+      <h2 class="panel-title" data-i18n="entryTitle"></h2>
       <form id="roundForm" class="form-grid">
         <div class="field">
-          <label for="f-number">Nummer</label>
+          <label for="f-number" data-i18n="labelNumber"></label>
           <input type="number" id="f-number" required>
         </div>
         <div class="field">
-          <label for="f-date">Datum</label>
+          <label for="f-date" data-i18n="labelDate"></label>
           <input type="date" id="f-date" required>
         </div>
         <div class="field">
-          <label for="f-time">Uhrzeit</label>
+          <label for="f-time" data-i18n="labelTime"></label>
           <input type="time" id="f-time" required>
         </div>
         <div class="field">
-          <label for="f-map">Map</label>
-          <input list="mapOptions" id="f-map" placeholder="z. B. Dam Battlegrounds" required>
+          <label for="f-map" data-i18n="labelMap"></label>
+          <input list="mapOptions" id="f-map" required>
           <datalist id="mapOptions">
             <option value="Dam Battlegrounds">
             <option value="Buried City">
@@ -233,39 +256,39 @@
           </datalist>
         </div>
         <div class="field">
-          <label for="f-condition">Map Condition</label>
-          <input list="conditionOptions" id="f-condition" placeholder="z. B. Clear, Hurricane" required>
+          <label for="f-condition" data-i18n="labelCondition"></label>
+          <input list="conditionOptions" id="f-condition" required>
           <datalist id="conditionOptions"></datalist>
         </div>
         <div class="field">
-          <label for="f-money">$ verdient</label>
+          <label for="f-money" data-i18n="labelMoney"></label>
           <input type="number" id="f-money" step="1" placeholder="0" required>
         </div>
         <div class="field">
-          <label for="f-xp">XP erhalten</label>
+          <label for="f-xp" data-i18n="labelXP"></label>
           <input type="number" id="f-xp" step="1" placeholder="0" required>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn" id="submitBtn">Runde speichern</button>
+          <button type="submit" class="btn" id="submitBtn" data-i18n="submitBtn"></button>
           <span class="form-msg" id="formMsg"></span>
         </div>
       </form>
     </div>
 
     <div class="panel">
-      <h2 class="panel-title">Letzte Runden</h2>
+      <h2 class="panel-title" data-i18n="recentTitle"></h2>
       <div id="recentTableWrap"></div>
     </div>
   </div>
 
   <div class="view" id="view-list">
     <div class="panel">
-      <h2 class="panel-title">Alle Runden</h2>
+      <h2 class="panel-title" data-i18n="listTitle"></h2>
       <div class="filter-row">
-        <select id="filterMap"><option value="">Alle Maps</option></select>
-        <select id="filterCondition"><option value="">Alle Conditions</option></select>
+        <select id="filterMap"></select>
+        <select id="filterCondition"></select>
         <input type="month" id="filterMonth">
-        <button class="btn ghost" id="clearFilters">Filter zurücksetzen</button>
+        <button class="btn ghost" id="clearFilters" data-i18n="clearFilters"></button>
       </div>
       <div id="fullTableWrap"></div>
     </div>
@@ -276,9 +299,9 @@
 
     <div class="panel">
       <div class="sub-tabs">
-        <button class="active" data-block="byMap">Pro Map</button>
-        <button data-block="byCondition">Pro Condition</button>
-        <button data-block="byMonth">Monatlich</button>
+        <button class="active" data-block="byMap" data-i18n="subMap"></button>
+        <button data-block="byCondition" data-i18n="subCondition"></button>
+        <button data-block="byMonth" data-i18n="subMonth"></button>
       </div>
 
       <div class="analysis-block active" id="block-byMap">
@@ -304,8 +327,93 @@ let rounds = [];
 let charts = {};
 
 const $ = sel => document.querySelector(sel);
-const fmtMoney = n => '$' + Number(n).toLocaleString('de-DE');
-const fmtXP = n => Number(n).toLocaleString('de-DE');
+
+// ---------- i18n ----------
+const translations = {
+  de: {
+    brandTag: 'RUNDENTRACKER',
+    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung',
+    runCountLabel: 'RUNDEN GESAMT',
+    entryTitle: 'Neue Runde eintragen',
+    labelNumber: 'Nummer', labelDate: 'Datum', labelTime: 'Uhrzeit',
+    labelMap: 'Map', labelCondition: 'Map Condition',
+    labelMoney: '$ verdient', labelXP: 'XP erhalten',
+    placeholderMap: 'z. B. Dam Battlegrounds', placeholderCondition: 'z. B. Clear, Hurricane',
+    submitBtn: 'Runde speichern',
+    msgSaved: 'Gespeichert.', msgSaveError: 'Fehler beim Speichern — Server erreichbar?',
+    recentTitle: 'Letzte Runden', listTitle: 'Alle Runden',
+    filterAllMaps: 'Alle Maps', filterAllConditions: 'Alle Conditions',
+    clearFilters: 'Filter zurücksetzen',
+    thNumber: 'Nr.', thDate: 'Datum', thTime: 'Zeit', thMap: 'Map', thCondition: 'Condition', thMoney: '$', thXP: 'XP',
+    delete: 'Löschen',
+    emptyState: 'Noch keine Runden erfasst. Trag oben deine erste Runde ein.',
+    emptyAnalysis: 'Noch keine Daten für diese Auswertung.',
+    statRounds: 'RUNDEN', statTotalMoney: 'GESAMT $', statTotalXP: 'GESAMT XP', statAvgMoney: 'Ø $ / RUNDE',
+    subMap: 'Pro Map', subCondition: 'Pro Condition', subMonth: 'Monatlich',
+    thRounds: 'Runden', thTotalMoney: 'Gesamt $', thAvgMoney: 'Ø $', thTotalXP: 'Gesamt XP', thAvgXP: 'Ø XP', thMonth: 'Monat',
+    chartAvgMoney: 'Ø $ pro Runde', chartTotalMoneyMonth: 'Gesamt $ pro Monat',
+    numberLocale: 'de-DE', dateLocale: 'de-DE',
+    months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
+  },
+  en: {
+    brandTag: 'RUN TRACKER',
+    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats',
+    runCountLabel: 'TOTAL RUNS',
+    entryTitle: 'Log a new run',
+    labelNumber: 'Number', labelDate: 'Date', labelTime: 'Time',
+    labelMap: 'Map', labelCondition: 'Map Condition',
+    labelMoney: '$ earned', labelXP: 'XP gained',
+    placeholderMap: 'e.g. Dam Battlegrounds', placeholderCondition: 'e.g. Clear, Hurricane',
+    submitBtn: 'Save run',
+    msgSaved: 'Saved.', msgSaveError: 'Failed to save — is the server reachable?',
+    recentTitle: 'Recent runs', listTitle: 'All runs',
+    filterAllMaps: 'All maps', filterAllConditions: 'All conditions',
+    clearFilters: 'Reset filters',
+    thNumber: 'No.', thDate: 'Date', thTime: 'Time', thMap: 'Map', thCondition: 'Condition', thMoney: '$', thXP: 'XP',
+    delete: 'Delete',
+    emptyState: 'No runs logged yet. Add your first run above.',
+    emptyAnalysis: 'No data yet for this breakdown.',
+    statRounds: 'RUNS', statTotalMoney: 'TOTAL $', statTotalXP: 'TOTAL XP', statAvgMoney: 'AVG $ / RUN',
+    subMap: 'By Map', subCondition: 'By Condition', subMonth: 'Monthly',
+    thRounds: 'Runs', thTotalMoney: 'Total $', thAvgMoney: 'Avg $', thTotalXP: 'Total XP', thAvgXP: 'Avg XP', thMonth: 'Month',
+    chartAvgMoney: 'Avg $ per run', chartTotalMoneyMonth: 'Total $ per month',
+    numberLocale: 'en-US', dateLocale: 'en-GB',
+    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  }
+};
+
+let currentLang = localStorage.getItem('arclog-lang') || (navigator.language.startsWith('de') ? 'de' : 'en');
+
+function t(key){ return translations[currentLang][key]; }
+function fmtMoney(n){ return '$' + Number(n).toLocaleString(t('numberLocale')); }
+function fmtXP(n){ return Number(n).toLocaleString(t('numberLocale')); }
+function formatDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  const dt = new Date(Date.UTC(Number(y), Number(m)-1, Number(d)));
+  return dt.toLocaleDateString(t('dateLocale'), { timeZone:'UTC' });
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+  $('#f-map').placeholder = t('placeholderMap');
+  $('#f-condition').placeholder = t('placeholderCondition');
+  document.documentElement.lang = currentLang;
+  $('#langDE').classList.toggle('active', currentLang==='de');
+  $('#langEN').classList.toggle('active', currentLang==='en');
+}
+
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('arclog-lang', lang);
+  applyStaticTranslations();
+  populateFilterOptions();
+  refreshAll();
+}
+$('#langDE').addEventListener('click', ()=>setLang('de'));
+$('#langEN').addEventListener('click', ()=>setLang('en'));
 
 function setStatus(state){
   const dot = $('#statusDot');
@@ -316,7 +424,7 @@ function setStatus(state){
 // ---------- API ----------
 async function loadRounds(){
   const res = await fetch(API);
-  if(!res.ok) throw new Error('Laden fehlgeschlagen');
+  if(!res.ok) throw new Error('load failed');
   rounds = await res.json();
 }
 async function createRound(entry){
@@ -333,12 +441,12 @@ async function createRound(entry){
       xp: entry.xp
     })
   });
-  if(!res.ok) throw new Error('Speichern fehlgeschlagen');
+  if(!res.ok) throw new Error('save failed');
   return res.json();
 }
 async function deleteRound(id){
   const res = await fetch(API + '/' + id, { method: 'DELETE' });
-  if(!res.ok) throw new Error('Löschen fehlgeschlagen');
+  if(!res.ok) throw new Error('delete failed');
 }
 
 // ---------- Tabs ----------
@@ -402,11 +510,11 @@ form.addEventListener('submit', async e=>{
     prefillForm();
     $('#f-money').value='';
     $('#f-xp').value='';
-    showMsg('Gespeichert.', 'ok');
+    showMsg(t('msgSaved'), 'ok');
     setStatus('ok');
     refreshAll();
   }catch(err){
-    showMsg('Fehler beim Speichern — Server erreichbar?', 'err');
+    showMsg(t('msgSaveError'), 'err');
     setStatus('err');
   }finally{
     submitBtn.disabled = false;
@@ -423,9 +531,11 @@ function sortedRounds(list){
   });
 }
 
-function tableHTML(list, {editable=true} = {}){
+function tableHTML(list, opts){
+  opts = opts || {};
+  const editable = opts.editable !== false;
   if(list.length===0){
-    return '<div class="empty-state">Noch keine Runden erfasst. Trag oben deine erste Runde ein.</div>';
+    return '<div class="empty-state">' + t('emptyState') + '</div>';
   }
   const rows = list.map(r=>`
     <tr>
@@ -436,25 +546,22 @@ function tableHTML(list, {editable=true} = {}){
       <td>${escapeHTML(r.condition)}</td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
-      ${editable? `<td class="actions"><button class="del" data-id="${r.id}">Löschen</button></td>`:''}
+      ${editable? `<td class="actions"><button class="del" data-id="${r.id}">${t('delete')}</button></td>`:''}
     </tr>
   `).join('');
   return `
     <table>
       <thead><tr>
-        <th>Nr.</th><th>Datum</th><th>Zeit</th><th>Map</th><th>Condition</th><th>$</th><th>XP</th>${editable?'<th></th>':''}
+        <th>${t('thNumber')}</th><th>${t('thDate')}</th><th>${t('thTime')}</th><th>${t('thMap')}</th><th>${t('thCondition')}</th><th>${t('thMoney')}</th><th>${t('thXP')}</th>${editable?'<th></th>':''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
 }
-function formatDate(iso){
-  if(!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return `${d}.${m}.${y}`;
-}
 function escapeHTML(s){
-  return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
 }
 
 function renderRecentTable(){
@@ -483,8 +590,8 @@ function populateFilterOptions(){
   const conds = [...new Set(rounds.map(r=>r.condition).filter(Boolean))].sort();
   const fm = $('#filterMap'), fc = $('#filterCondition');
   const curM = fm.value, curC = fc.value;
-  fm.innerHTML = '<option value="">Alle Maps</option>' + maps.map(m=>`<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
-  fc.innerHTML = '<option value="">Alle Conditions</option>' + conds.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+  fm.innerHTML = `<option value="">${t('filterAllMaps')}</option>` + maps.map(m=>`<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  fc.innerHTML = `<option value="">${t('filterAllConditions')}</option>` + conds.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
   fm.value = curM; fc.value = curC;
 }
 
@@ -526,9 +633,7 @@ function statsFor(list){
   const totalMoney = list.reduce((s,r)=>s+(Number(r.money)||0),0);
   const totalXP = list.reduce((s,r)=>s+(Number(r.xp)||0),0);
   return {
-    count,
-    totalMoney,
-    totalXP,
+    count, totalMoney, totalXP,
     avgMoney: count? totalMoney/count : 0,
     avgXP: count? totalXP/count : 0
   };
@@ -544,10 +649,10 @@ function renderAnalysis(){
 function renderGlobalStats(){
   const s = statsFor(rounds);
   $('#globalStats').innerHTML = `
-    <div class="stat-card"><div class="label">RUNDEN</div><div class="value">${s.count}</div></div>
-    <div class="stat-card"><div class="label">GESAMT $</div><div class="value accent">${fmtMoney(s.totalMoney)}</div></div>
-    <div class="stat-card"><div class="label">GESAMT XP</div><div class="value teal">${fmtXP(s.totalXP)}</div></div>
-    <div class="stat-card"><div class="label">Ø $ / RUNDE</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
+    <div class="stat-card"><div class="label">${t('statRounds')}</div><div class="value">${s.count}</div></div>
+    <div class="stat-card"><div class="label">${t('statTotalMoney')}</div><div class="value accent">${fmtMoney(s.totalMoney)}</div></div>
+    <div class="stat-card"><div class="label">${t('statTotalXP')}</div><div class="value teal">${fmtXP(s.totalXP)}</div></div>
+    <div class="stat-card"><div class="label">${t('statAvgMoney')}</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
   `;
 }
 
@@ -558,12 +663,12 @@ function renderBreakdown(field, tableId, chartId){
 
   const wrap = document.getElementById(tableId);
   if(entries.length===0){
-    wrap.innerHTML = '<div class="empty-state">Noch keine Daten für diese Auswertung.</div>';
+    wrap.innerHTML = '<div class="empty-state">' + t('emptyAnalysis') + '</div>';
   } else {
     wrap.innerHTML = `
       <table class="breakdown-table">
         <thead><tr>
-          <th>${field==='map'?'Map':'Condition'}</th><th>Runden</th><th>Gesamt $</th><th>Ø $</th><th>Gesamt XP</th><th>Ø XP</th>
+          <th>${field==='map'?t('thMap'):t('thCondition')}</th><th>${t('thRounds')}</th><th>${t('thTotalMoney')}</th><th>${t('thAvgMoney')}</th><th>${t('thTotalXP')}</th><th>${t('thAvgXP')}</th>
         </tr></thead>
         <tbody>
           ${entries.map(e=>`
@@ -580,7 +685,7 @@ function renderBreakdown(field, tableId, chartId){
       </table>
     `;
   }
-  drawBarChart(chartId, entries.map(e=>e.key), entries.map(e=>Math.round(e.avgMoney)), 'Ø $ pro Runde');
+  drawBarChart(chartId, entries.map(e=>e.key), entries.map(e=>Math.round(e.avgMoney)), t('chartAvgMoney'));
 }
 
 function renderMonthlyBreakdown(){
@@ -590,12 +695,12 @@ function renderMonthlyBreakdown(){
 
   const wrap = document.getElementById('tableMonth');
   if(entries.length===0){
-    wrap.innerHTML = '<div class="empty-state">Noch keine Daten für diese Auswertung.</div>';
+    wrap.innerHTML = '<div class="empty-state">' + t('emptyAnalysis') + '</div>';
   } else {
     wrap.innerHTML = `
       <table class="breakdown-table">
         <thead><tr>
-          <th>Monat</th><th>Runden</th><th>Gesamt $</th><th>Ø $</th><th>Gesamt XP</th><th>Ø XP</th>
+          <th>${t('thMonth')}</th><th>${t('thRounds')}</th><th>${t('thTotalMoney')}</th><th>${t('thAvgMoney')}</th><th>${t('thTotalXP')}</th><th>${t('thAvgXP')}</th>
         </tr></thead>
         <tbody>
           ${entries.slice().reverse().map(e=>`
@@ -612,12 +717,11 @@ function renderMonthlyBreakdown(){
       </table>
     `;
   }
-  drawBarChart('chartMonth', entries.map(e=>formatMonth(e.key)), entries.map(e=>e.totalMoney), 'Gesamt $ pro Monat');
+  drawBarChart('chartMonth', entries.map(e=>formatMonth(e.key)), entries.map(e=>e.totalMoney), t('chartTotalMoneyMonth'));
 }
 function formatMonth(ym){
   const [y,m] = ym.split('-');
-  const names = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
-  return names[Number(m)-1] + ' ' + y;
+  return t('months')[Number(m)-1] + ' ' + y;
 }
 
 function drawBarChart(canvasId, labels, data, label){
@@ -666,6 +770,8 @@ function refreshAll(){
 
 // ---------- Init ----------
 (async function init(){
+  applyStaticTranslations();
+  populateFilterOptions();
   prefillForm();
   try{
     await loadRounds();
