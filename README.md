@@ -82,7 +82,7 @@ docker compose up -d --build
 
 ##
 
-![Screenshot - Stats](docs\screenshots\arc_raiders_salvage_log_screenshot_stats.png)
+![Screenshot - Stats](docs/screenshots/arc_raiders_salvage_log_screenshot_stats.png)
 
 
 ## License
