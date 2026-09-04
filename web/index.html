@@ -188,6 +188,38 @@
   .breakdown-table td, .breakdown-table th{padding:9px 10px;}
   .breakdown-table td:first-child, .breakdown-table th:first-child{font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
 
+  .highscore-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .highscore-card{
+    background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .hs-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);
+    letter-spacing:.3px;margin-bottom:8px;
+  }
+  .hs-value{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;
+    margin-bottom:8px;
+  }
+  .hs-value.accent{color:var(--accent);}
+  .hs-value.teal{color:var(--accent-2);}
+  .hs-details{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);
+    margin-bottom:14px;min-height:16px;
+  }
+  .hs-toggle{
+    background:none;border:1px solid var(--border);color:var(--text-muted);
+    font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;
+    padding:6px 12px;border-radius:var(--radius);cursor:pointer;
+  }
+  .hs-toggle:hover{color:var(--text);border-color:var(--text-faint);}
+  .hs-list{display:none;margin-top:14px;border-top:1px solid var(--border-soft);padding-top:10px;}
+  .hs-list.open{display:block;}
+  .hs-list table{font-size:12.5px;}
+  .hs-list td{padding:6px 4px;border-bottom:none;font-family:'IBM Plex Mono',monospace;}
+  .hs-list td.rank{color:var(--text-faint);width:18px;}
+  .hs-list tr:first-child td{color:var(--text);}
+
   .chart-wrap{height:220px;margin-top:6px;}
 
   .sub-tabs{display:flex;gap:8px;margin-bottom:18px;}
@@ -205,6 +237,7 @@
     .form-grid{grid-template-columns:repeat(2,1fr);}
     .field.span-2{grid-column:span 2;}
     .stat-row{grid-template-columns:repeat(2,1fr);}
+    .highscore-grid{grid-template-columns:1fr;}
     header{flex-direction:column;align-items:flex-start;gap:10px;}
     .header-right{width:100%;justify-content:space-between;}
     .header-stats{gap:14px;}
@@ -309,6 +342,26 @@
     <div class="stat-row" id="globalStats"></div>
 
     <div class="panel">
+      <h2 class="panel-title" data-i18n="highscoreTitle"></h2>
+      <div class="highscore-grid">
+        <div class="highscore-card">
+          <div class="hs-label" data-i18n="hsMoneyLabel"></div>
+          <div class="hs-value accent" id="hsMoneyValue">—</div>
+          <div class="hs-details" id="hsMoneyDetails"></div>
+          <button class="hs-toggle" data-metric="money"></button>
+          <div class="hs-list" id="hsMoneyList"></div>
+        </div>
+        <div class="highscore-card">
+          <div class="hs-label" data-i18n="hsXPLabel"></div>
+          <div class="hs-value teal" id="hsXPValue">—</div>
+          <div class="hs-details" id="hsXPDetails"></div>
+          <button class="hs-toggle" data-metric="xp"></button>
+          <div class="hs-list" id="hsXPList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="sub-tabs">
         <button class="active" data-block="byMap" data-i18n="subMap"></button>
         <button data-block="byCondition" data-i18n="subCondition"></button>
@@ -361,6 +414,10 @@ const translations = {
     emptyState: 'Noch keine Runden erfasst. Trag oben deine erste Runde ein.',
     emptyAnalysis: 'Noch keine Daten für diese Auswertung.',
     statRounds: 'RUNDEN', statTotalMoney: 'GESAMT $', statTotalXP: 'GESAMT XP', statAvgMoney: 'Ø $ / RUNDE',
+    highscoreTitle: 'Bestleistung',
+    hsMoneyLabel: 'TOP RUN — $', hsXPLabel: 'TOP RUN — XP',
+    hsShowTop5: 'Top 5 anzeigen', hsHideTop5: 'Top 5 ausblenden',
+    hsNoData: 'Noch keine Runden erfasst.',
     subMap: 'Pro Map', subCondition: 'Pro Condition', subMonth: 'Monatlich',
     thRounds: 'Runden', thTotalMoney: 'Gesamt $', thAvgMoney: 'Ø $', thTotalXP: 'Gesamt XP', thAvgXP: 'Ø XP', thMonth: 'Monat',
     chartAvgMoney: 'Ø $ pro Runde', chartTotalMoneyMonth: 'Gesamt $ pro Monat',
@@ -387,6 +444,10 @@ const translations = {
     emptyState: 'No runs logged yet. Add your first run above.',
     emptyAnalysis: 'No data yet for this breakdown.',
     statRounds: 'RUNS', statTotalMoney: 'TOTAL $', statTotalXP: 'TOTAL XP', statAvgMoney: 'AVG $ / RUN',
+    highscoreTitle: 'Best Run',
+    hsMoneyLabel: 'TOP RUN — $', hsXPLabel: 'TOP RUN — XP',
+    hsShowTop5: 'Show top 5', hsHideTop5: 'Hide top 5',
+    hsNoData: 'No runs logged yet.',
     subMap: 'By Map', subCondition: 'By Condition', subMonth: 'Monthly',
     thRounds: 'Runs', thTotalMoney: 'Total $', thAvgMoney: 'Avg $', thTotalXP: 'Total XP', thAvgXP: 'Avg XP', thMonth: 'Month',
     chartAvgMoney: 'Avg $ per run', chartTotalMoneyMonth: 'Total $ per month',
@@ -416,6 +477,7 @@ function applyStaticTranslations(){
   document.documentElement.lang = currentLang;
   $('#langDE').classList.toggle('active', currentLang==='de');
   $('#langEN').classList.toggle('active', currentLang==='en');
+  updateHsToggleLabels();
 }
 
 function setLang(lang){
@@ -654,6 +716,7 @@ function statsFor(list){
 
 function renderAnalysis(){
   renderGlobalStats();
+  renderHighscores();
   renderBreakdown('map', 'tableMap', 'chartMap');
   renderBreakdown('condition', 'tableCondition', 'chartCondition');
   renderMonthlyBreakdown();
@@ -668,6 +731,68 @@ function renderGlobalStats(){
     <div class="stat-card"><div class="label">${t('statAvgMoney')}</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
   `;
 }
+
+function topRounds(metric, n){
+  return [...rounds]
+    .sort((a,b)=> (Number(b[metric])||0) - (Number(a[metric])||0))
+    .slice(0, n);
+}
+
+function renderHighscoreCard(metric, valueId, detailsId, listId, fmt){
+  const top = topRounds(metric, 5);
+  const valueEl = document.getElementById(valueId);
+  const detailsEl = document.getElementById(detailsId);
+  const listEl = document.getElementById(listId);
+
+  if(top.length===0){
+    valueEl.textContent = '—';
+    detailsEl.textContent = t('hsNoData');
+    listEl.innerHTML = '';
+    return;
+  }
+
+  const best = top[0];
+  valueEl.textContent = fmt(best[metric]);
+  detailsEl.textContent = `#${best.number} · ${best.map} · ${best.condition} · ${formatDate(best.date)}`;
+
+  listEl.innerHTML = `
+    <table>
+      <tbody>
+        ${top.map((r,i)=>`
+          <tr>
+            <td class="rank">${i+1}</td>
+            <td>${fmt(r[metric])}</td>
+            <td>${escapeHTML(r.map)}</td>
+            <td>${formatDate(r.date)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderHighscores(){
+  renderHighscoreCard('money', 'hsMoneyValue', 'hsMoneyDetails', 'hsMoneyList', fmtMoney);
+  renderHighscoreCard('xp', 'hsXPValue', 'hsXPDetails', 'hsXPList', fmtXP);
+}
+
+function updateHsToggleLabels(){
+  document.querySelectorAll('.hs-toggle').forEach(btn=>{
+    const metric = btn.dataset.metric;
+    const listId = metric === 'money' ? 'hsMoneyList' : 'hsXPList';
+    const isOpen = document.getElementById(listId).classList.contains('open');
+    btn.textContent = isOpen ? t('hsHideTop5') : t('hsShowTop5');
+  });
+}
+
+document.querySelectorAll('.hs-toggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const metric = btn.dataset.metric;
+    const listId = metric === 'money' ? 'hsMoneyList' : 'hsXPList';
+    document.getElementById(listId).classList.toggle('open');
+    updateHsToggleLabels();
+  });
+});
 
 function renderBreakdown(field, tableId, chartId){
   const groups = groupBy(rounds, r=>r[field]||'—');
