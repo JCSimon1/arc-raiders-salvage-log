@@ -364,14 +364,25 @@
       <h2 class="panel-title" data-i18n="highscoreTitle"></h2>
       <div class="highscore-grid">
         <div class="highscore-card">
-          <div class="hs-label" data-i18n="hsMoneyLabel"></div>
+          <div class="hs-label">
+            <svg class="hs-icon hs-icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v10M9.5 9.3c0-1 1.1-1.8 2.5-1.8s2.5.8 2.5 1.8-1.1 1.6-2.5 1.6-2.5.7-2.5 1.7 1.1 1.8 2.5 1.8 2.5-.8 2.5-1.8" stroke-linecap="round"/>
+            </svg>
+          <span data-i18n="hsMoneyLabel"></span>
+          </div>
           <div class="hs-value accent" id="hsMoneyValue">—</div>
           <div class="hs-details" id="hsMoneyDetails"></div>
           <button class="hs-toggle" data-metric="money"></button>
           <div class="hs-list" id="hsMoneyList"></div>
         </div>
         <div class="highscore-card">
-          <div class="hs-label" data-i18n="hsXPLabel"></div>
+          <div class="hs-label">
+            <svg class="hs-icon hs-icon-xp" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M13 2 4 14h6l-1 8 9-12h-6z"/>
+            </svg>
+            <span data-i18n="hsXPLabel"></span>
+          </div>
           <div class="hs-value teal" id="hsXPValue">—</div>
           <div class="hs-details" id="hsXPDetails"></div>
           <button class="hs-toggle" data-metric="xp"></button>
