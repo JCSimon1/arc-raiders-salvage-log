@@ -13,7 +13,9 @@
 
 # ARC LOG — Match Tracker for Arc Raiders
 
-Self-hosted simple web app for tracking Arc Raiders matches (map, condition, currency, and XP)
+![Arc Raiders Salvage Log](docs/screenshots/Banner.png)
+
+Self-hosted simple web app for tracking Arc Raiders rounds (map, condition, currency, and XP)
 with analytics broken down by map, map condition, and month.
 
 **Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.

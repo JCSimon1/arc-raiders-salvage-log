@@ -169,6 +169,16 @@
     font-family:'IBM Plex Mono',monospace;font-size:13px;
   }
 
+  .cell-with-icon{display:flex;align-items:center;gap:8px;}
+  .map-thumb{
+    width:64px;height:30px;object-fit:cover;border-radius:6px;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+  .condition-thumb{
+    width:28px;height:28px;object-fit:cover;border-radius:50%;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+
   .filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
   .filter-row select, .filter-row input{
     background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
@@ -617,8 +627,8 @@ function tableHTML(list, opts){
       <td>${r.number}</td>
       <td>${formatDate(r.date)}</td>
       <td>${r.time||''}</td>
-      <td>${escapeHTML(r.map)}</td>
-      <td>${escapeHTML(r.condition)}</td>
+      <td><div class="cell-with-icon"><img class="map-thumb" src="${mapImgSrc(r.map)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.map)}</div></td>
+      <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
       ${editable? `<td class="actions"><button class="del" data-id="${r.id}">${t('delete')}</button></td>`:''}
@@ -638,6 +648,15 @@ function escapeHTML(s){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
+
+function slugify(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') 
+    .replace(/[^a-z0-9]/g, '');
+}
+function mapImgSrc(map){ return '/images/map/' + slugify(map) + '.webp'; }
+function conditionImgSrc(cond){ return '/images/condition/' + slugify(cond) + '.webp'; }
 
 function renderRecentTable(){
   const recent = sortedRounds(rounds).slice(0,6);
