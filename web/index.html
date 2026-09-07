@@ -361,6 +361,15 @@ function renderRecentTable(){
   bindDeleteButtons('#recentTableWrap');
 }
 
+function slugify(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') 
+    .replace(/[^a-z0-9]/g, '');
+}
+function mapImgSrc(map){ return '/images/maps/' + slugify(map) + '.webp'; }
+function conditionImgSrc(cond){ return '/images/conditions/' + slugify(cond) + '.webp'; }
+
 function renderFullTable(){
   populateFilterOptions();
   const mapF = $('#filterMap').value;
