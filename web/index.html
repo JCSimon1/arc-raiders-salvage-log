@@ -655,8 +655,8 @@ function slugify(s){
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'') 
     .replace(/[^a-z0-9]/g, '');
 }
-function mapImgSrc(map){ return '/images/map/' + slugify(map) + '.webp'; }
-function conditionImgSrc(cond){ return '/images/condition/' + slugify(cond) + '.webp'; }
+function mapImgSrc(map){ return '/images/maps/' + slugify(map) + '.webp'; }
+function conditionImgSrc(cond){ return '/images/conditions/' + slugify(cond) + '.webp'; }
 
 function renderRecentTable(){
   const recent = sortedRounds(rounds).slice(0,6);
