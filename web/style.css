@@ -192,18 +192,32 @@ td.actions button.del:hover{color:var(--negative);}
   background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px 18px;
 }
-.hs-label{
-  display:flex;align-items:center;justify-content:space-between;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);
-  letter-spacing:.3px;margin-bottom:10px;
+.hs-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.3px;
+  margin-bottom: 10px;
 }
-.hs-icon{
-  width:48px;height:48px;
-  flex-shrink:0;
-  opacity:.9;
+
+.hs-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
-.hs-icon-money{ color:var(--accent); filter: drop-shadow(0 0 4px rgba(232,163,61,0.35)); }
-.hs-icon-xp{ color:var(--accent-2); filter: drop-shadow(0 0 4px rgba(92,139,143,0.35)); }
+.hs-icon-money {
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px rgba(232, 163, 61, 0.35));
+}
+.hs-icon-xp {
+  color: var(--accent-2);
+  filter: drop-shadow(0 0 4px rgba(92, 139, 143, 0.35));
+}
+
 .hs-value{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;
   margin-bottom:8px;
@@ -249,3 +263,10 @@ td.actions button.del:hover{color:var(--negative);}
   .header-right{width:100%;justify-content:space-between;}
   .header-stats{gap:14px;}
 }
+
+.app-footer{
+margin-top:32px;
+text-align:center;
+font-family:'IBM Plex Mono', monospace;
+font-size:11px;
+color:var(--text-faint);
