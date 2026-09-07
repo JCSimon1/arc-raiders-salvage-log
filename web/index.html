@@ -36,6 +36,7 @@
     <button class="active" data-view="entry" data-i18n="navEntry"></button>
     <button data-view="list" data-i18n="navList"></button>
     <button data-view="analysis" data-i18n="navAnalysis"></button>
+    <button data-view="distribution" data-i18n="navDistribution"></button>
   </nav>
 
   <div class="view active" id="view-entry">
@@ -161,6 +162,19 @@
       </div>
     </div>
   </div>
+
+  <div class="view" id="view-distribution">
+    <div class="highscore-grid">
+      <div class="highscore-card">
+        <div class="hs-label"><span data-i18n="distMapTitle"></span></div>
+        <div class="chart-wrap"><canvas id="chartMapDist"></canvas></div>
+      </div>
+      <div class="highscore-card">
+        <div class="hs-label"><span data-i18n="distConditionTitle"></span></div>
+        <div class="chart-wrap"><canvas id="chartConditionDist"></canvas></div>
+      </div>
+    </div>
+  </div>
   <footer class="app-footer">v<span id="appVersion">%%VERSION%%</span></footer>
 </div>
 
@@ -249,6 +263,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
     $('#view-'+btn.dataset.view).classList.add('active');
     if(btn.dataset.view==='analysis') renderAnalysis();
     if(btn.dataset.view==='list') renderFullTable();
+    if(btn.dataset.view==='distribution') renderDistribution();
   });
 });
 document.querySelectorAll('.sub-tabs button').forEach(btn=>{
@@ -617,6 +632,68 @@ function drawBarChart(canvasId, labels, data, label){
   });
 }
 
+// ---------- Distribution (pie charts) ----------
+const PIE_COLORS = [
+  'rgba(232,163,61,0.75)',
+  'rgba(92,139,143,0.75)',
+  'rgba(143,170,102,0.75)',
+  'rgba(193,80,63,0.75)',
+  'rgba(140,120,200,0.75)',
+  'rgba(200,140,180,0.75)',
+  'rgba(120,170,200,0.75)',
+  'rgba(210,190,120,0.75)'
+];
+
+function drawPieChart(canvasId, labels, data){
+  const ctx = document.getElementById(canvasId);
+  if(charts[canvasId]) charts[canvasId].destroy();
+  if(labels.length===0) return;
+  charts[canvasId] = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: labels.map((_,i)=>PIE_COLORS[i % PIE_COLORS.length]),
+        borderColor: 'var(--panel)',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color:'#8b949a', font:{family:'IBM Plex Mono', size:11}, boxWidth:12, padding:10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx=>{
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const val = ctx.parsed;
+              const pct = total? Math.round((val/total)*1000)/10 : 0;
+              return `${ctx.label}: ${val} ${t('distRoundsSuffix')} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDistribution(){
+  const mapGroups = groupBy(rounds, r=>r.map||'—');
+  const mapEntries = [...mapGroups.entries()].map(([key,list])=>({key, count:list.length}))
+    .sort((a,b)=>b.count-a.count);
+  drawPieChart('chartMapDist', mapEntries.map(e=>e.key), mapEntries.map(e=>e.count));
+
+  const condGroups = groupBy(rounds, r=>r.condition||'—');
+  const condEntries = [...condGroups.entries()].map(([key,list])=>({key, count:list.length}))
+    .sort((a,b)=>b.count-a.count);
+  drawPieChart('chartConditionDist', condEntries.map(e=>e.key), condEntries.map(e=>e.count));
+}
+
 // ---------- Global refresh ----------
 function updateDatalists(){
   const conds = [...new Set(rounds.map(r=>r.condition).filter(Boolean))].sort();
@@ -632,6 +709,7 @@ function refreshAll(){
   updateDatalists();
   if($('#view-list').classList.contains('active')) renderFullTable();
   if($('#view-analysis').classList.contains('active')) renderAnalysis();
+  if($('#view-distribution').classList.contains('active')) renderDistribution();
 }
 
 // ---------- Init ----------

@@ -6,3 +6,4 @@ node_modules/
 /images/conditions/*
 !/images/maps/.gitkeep
 !/images/conditions/.gitkeep
+.backlog

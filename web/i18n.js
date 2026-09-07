@@ -1,7 +1,7 @@
 const translations = {
   de: {
     brandTag: 'RUNDENTRACKER',
-    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung',
+    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung',
     runCountLabel: 'RUNDEN GESAMT',
     headerRoundsLabel: 'RUNDEN', headerMoneyLabel: '$ GESAMT', headerXPLabel: 'XP GESAMT',
     entryTitle: 'Neue Runde eintragen',
@@ -26,12 +26,14 @@ const translations = {
     subMap: 'Pro Map', subCondition: 'Pro Condition', subMonth: 'Monatlich',
     thRounds: 'Runden', thTotalMoney: 'Gesamt $', thAvgMoney: 'Ø $', thTotalXP: 'Gesamt XP', thAvgXP: 'Ø XP', thMonth: 'Monat',
     chartAvgMoney: 'Ø $ pro Runde', chartTotalMoneyMonth: 'Gesamt $ pro Monat',
+    distMapTitle: 'Runden pro Map', distConditionTitle: 'Runden pro Condition',
+    distRoundsSuffix: 'Runden',
     numberLocale: 'de-DE', dateLocale: 'de-DE',
     months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
   },
   en: {
     brandTag: 'RUN TRACKER',
-    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats',
+    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution',
     runCountLabel: 'TOTAL RUNS',
     headerRoundsLabel: 'RUNS', headerMoneyLabel: 'TOTAL $', headerXPLabel: 'TOTAL XP',
     entryTitle: 'Log a new run',
@@ -56,6 +58,8 @@ const translations = {
     subMap: 'By Map', subCondition: 'By Condition', subMonth: 'Monthly',
     thRounds: 'Runs', thTotalMoney: 'Total $', thAvgMoney: 'Avg $', thTotalXP: 'Total XP', thAvgXP: 'Avg XP', thMonth: 'Month',
     chartAvgMoney: 'Avg $ per run', chartTotalMoneyMonth: 'Total $ per month',
+    distMapTitle: 'Runs per Map', distConditionTitle: 'Runs per Condition',
+    distRoundsSuffix: 'runs',
     numberLocale: 'en-US', dateLocale: 'en-GB',
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   }
