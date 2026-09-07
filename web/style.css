@@ -158,6 +158,16 @@ td.actions button.del:hover{color:var(--negative);}
   font-family:'IBM Plex Mono',monospace;font-size:13px;
 }
 
+.cell-with-icon{display:flex;align-items:center;gap:8px;}
+  .map-thumb{
+    width:64px;height:30px;object-fit:cover;border-radius:6px;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+  .condition-thumb{
+    width:28px;height:28px;object-fit:cover;border-radius:50%;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+
 .filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
 .filter-row select, .filter-row input{
   background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
