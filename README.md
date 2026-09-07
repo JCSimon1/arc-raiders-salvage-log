@@ -43,10 +43,15 @@ cp .env.example .env
 arc-raiders-salvage-log/
 ├── docker-compose.yml
 ├── .env
+├── .env.example
+├── update.sh
 ├── api/
 │   ├── Dockerfile
 │   ├── package.json
 │   └── server.js
+├── images/
+│   ├── conditions/
+│   ├── maps/
 └── web/
     ├── Dockerfile
     ├── nginx.conf
@@ -54,6 +59,15 @@ arc-raiders-salvage-log/
 ```
 
 ## Quick Start
+
+### First start
+
+```bash
+chmod +x update.sh
+./update.sh
+```
+
+Or alternatively you can do it manually
 
 ```bash
 export APP_VERSION=$(git describe --tags --always)
@@ -78,10 +92,21 @@ docker compose exec db pg_dump -U arclog arclog > backup.sql
 
 ## Updating
 
+Execute the update script
 ```bash
-git pull
-export APP_VERSION=$(git describe --tags --always)
-docker compose up -d --build
+./update.sh
+```
+
+The script pulls the latest changes, determines the current version number based on the Git tag, and rebuilds the containers.
+
+## Versioning 
+
+The version number displayed in the footer is automatically derived from the current Git tag (`git describe --tags --always`) during the build process. To tag a new release:
+
+
+```bash
+git tag -a x.y.z -m "Description of the commit"
+git push origin x.y.z
 ```
 
 ## Features
