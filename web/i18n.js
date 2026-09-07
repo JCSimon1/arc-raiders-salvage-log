@@ -27,7 +27,8 @@ const translations = {
     thRounds: 'Runden', thTotalMoney: 'Gesamt $', thAvgMoney: 'Ø $', thTotalXP: 'Gesamt XP', thAvgXP: 'Ø XP', thMonth: 'Monat',
     chartAvgMoney: 'Ø $ pro Runde', chartTotalMoneyMonth: 'Gesamt $ pro Monat',
     distMapTitle: 'Runden pro Map', distConditionTitle: 'Runden pro Condition',
-    distRoundsSuffix: 'Runden',
+    distRoundsSuffix: 'Runden', distOthers: 'Andere',
+    thPercent: '%',
     numberLocale: 'de-DE', dateLocale: 'de-DE',
     months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
   },
@@ -59,7 +60,8 @@ const translations = {
     thRounds: 'Runs', thTotalMoney: 'Total $', thAvgMoney: 'Avg $', thTotalXP: 'Total XP', thAvgXP: 'Avg XP', thMonth: 'Month',
     chartAvgMoney: 'Avg $ per run', chartTotalMoneyMonth: 'Total $ per month',
     distMapTitle: 'Runs per Map', distConditionTitle: 'Runs per Condition',
-    distRoundsSuffix: 'runs',
+    distRoundsSuffix: 'runs', distOthers: 'Others',
+    thPercent: '%',
     numberLocale: 'en-US', dateLocale: 'en-GB',
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   }

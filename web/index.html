@@ -168,10 +168,12 @@
       <div class="highscore-card">
         <div class="hs-label"><span data-i18n="distMapTitle"></span></div>
         <div class="chart-wrap"><canvas id="chartMapDist"></canvas></div>
+        <div id="tableMapDist"></div>
       </div>
       <div class="highscore-card">
         <div class="hs-label"><span data-i18n="distConditionTitle"></span></div>
         <div class="chart-wrap"><canvas id="chartConditionDist"></canvas></div>
+        <div id="tableConditionDist"></div>
       </div>
     </div>
   </div>
@@ -634,14 +636,14 @@ function drawBarChart(canvasId, labels, data, label){
 
 // ---------- Distribution (pie charts) ----------
 const PIE_COLORS = [
-  'rgba(232,163,61,0.75)',
-  'rgba(92,139,143,0.75)',
-  'rgba(143,170,102,0.75)',
-  'rgba(193,80,63,0.75)',
-  'rgba(140,120,200,0.75)',
-  'rgba(200,140,180,0.75)',
-  'rgba(120,170,200,0.75)',
-  'rgba(210,190,120,0.75)'
+  'rgba(107, 122, 143, 0.75)',
+  'rgba(247, 136, 47, 0.75)',
+  'rgba(247, 195, 49, 0.75)',
+  'rgba(220, 199, 170, 0.75)',
+  'rgba(199, 175, 107, 0.75)',
+  'rgba(172, 183, 174, 0.75)',
+  'rgba(254, 218, 106, 0.75)',
+  'rgba(58, 70, 96, 0.75)'
 ];
 
 function drawPieChart(canvasId, labels, data){
@@ -649,19 +651,23 @@ function drawPieChart(canvasId, labels, data){
   if(charts[canvasId]) charts[canvasId].destroy();
   if(labels.length===0) return;
   charts[canvasId] = new Chart(ctx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
       labels,
       datasets: [{
         data,
         backgroundColor: labels.map((_,i)=>PIE_COLORS[i % PIE_COLORS.length]),
-        borderColor: 'var(--panel)',
-        borderWidth: 2
+        borderWidth: 0,
+        borderRadius: 6,
+        spacing: 4,
+        hoverOffset: 10
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '62%',
+      animation: { animateRotate: true, animateScale: true },
       plugins: {
         legend: {
           position: 'right',
@@ -682,16 +688,50 @@ function drawPieChart(canvasId, labels, data){
   });
 }
 
+function distTableHTML(entries){
+  const total = entries.reduce((s,e)=>s+e.count,0);
+  if(entries.length===0 || total===0){
+    return '<div class="empty-state">' + t('emptyAnalysis') + '</div>';
+  }
+  const rows = entries.map(e=>{
+    const pct = Math.round((e.count/total)*1000)/10;
+    return `
+      <tr>
+        <td>${escapeHTML(e.key)}</td>
+        <td>${e.count}</td>
+        <td>${pct}%</td>
+      </tr>
+    `;
+  }).join('');
+  return `
+    <table class="breakdown-table">
+      <thead><tr><th></th><th>${t('thRounds')}</th><th>${t('thPercent')}</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function topNWithOthers(entries, n){
+  if(entries.length<=n) return entries;
+  const top = entries.slice(0,n);
+  const rest = entries.slice(n);
+  const othersCount = rest.reduce((s,e)=>s+e.count,0);
+  return [...top, { key: t('distOthers'), count: othersCount }];
+}
+
 function renderDistribution(){
   const mapGroups = groupBy(rounds, r=>r.map||'—');
   const mapEntries = [...mapGroups.entries()].map(([key,list])=>({key, count:list.length}))
     .sort((a,b)=>b.count-a.count);
   drawPieChart('chartMapDist', mapEntries.map(e=>e.key), mapEntries.map(e=>e.count));
+  $('#tableMapDist').innerHTML = distTableHTML(mapEntries);
 
   const condGroups = groupBy(rounds, r=>r.condition||'—');
-  const condEntries = [...condGroups.entries()].map(([key,list])=>({key, count:list.length}))
+  const condEntriesAll = [...condGroups.entries()].map(([key,list])=>({key, count:list.length}))
     .sort((a,b)=>b.count-a.count);
+  const condEntries = topNWithOthers(condEntriesAll, 5);
   drawPieChart('chartConditionDist', condEntries.map(e=>e.key), condEntries.map(e=>e.count));
+  $('#tableConditionDist').innerHTML = distTableHTML(condEntries);
 }
 
 // ---------- Global refresh ----------
