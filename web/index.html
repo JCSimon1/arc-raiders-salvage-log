@@ -8,259 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
-<style>
-  :root{
-    --bg:#14171a;
-    --panel:#1c2124;
-    --panel-alt:#232a2e;
-    --border:#333c41;
-    --border-soft:#2a3236;
-    --accent:#e8a33d;
-    --accent-dim:#8a6428;
-    --accent-2:#5c8b8f;
-    --text:#e9e5dc;
-    --text-muted:#8b949a;
-    --text-faint:#5c6569;
-    --positive:#8faa66;
-    --negative:#c1503f;
-    --radius:3px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(232,163,61,0.05), transparent),
-      radial-gradient(900px 500px at 100% 0%, rgba(92,139,143,0.06), transparent),
-      var(--bg);
-    color:var(--text);
-    font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  ::selection{background:var(--accent-dim);color:#fff;}
-
-  .shell{max-width:980px;margin:0 auto;padding:28px 20px 80px;}
-
-  header{
-    display:flex;justify-content:space-between;align-items:flex-end;
-    padding-bottom:18px;margin-bottom:22px;
-    border-bottom:1px solid var(--border);
-    gap:16px;flex-wrap:wrap;
-  }
-  .brand{display:flex;align-items:baseline;gap:12px;}
-  .brand-mark{
-    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;
-    letter-spacing:0.5px;color:var(--text);line-height:1;
-  }
-  .brand-mark span{color:var(--accent);}
-  .brand-tag{font-size:12.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;}
-  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-faint);margin-right:6px;}
-  .status-dot.ok{background:var(--positive);}
-  .status-dot.err{background:var(--negative);}
-
-  .header-right{display:flex;align-items:center;gap:22px;}
-  .lang-toggle{display:flex;gap:6px;}
-  .lang-toggle button{
-    background:var(--panel-alt);border:1px solid var(--border);
-    border-radius:var(--radius);cursor:pointer;
-    width:34px;height:26px;font-size:15px;line-height:1;
-    display:flex;align-items:center;justify-content:center;
-    opacity:.5;transition:opacity .15s ease, border-color .15s ease;
-    padding:0;
-  }
-  .lang-toggle button:hover{opacity:.8;}
-  .lang-toggle button.active{opacity:1;border-color:var(--accent-dim);}
-
-  .header-stats{display:flex;gap:20px;}
-  .stat-mini{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);
-    text-align:right;letter-spacing:.2px;
-  }
-  .stat-mini b{
-    display:block;font-family:'Barlow Condensed',sans-serif;font-weight:600;
-    font-size:17px;color:var(--text);line-height:1.3;
-  }
-  .stat-mini b.accent{color:var(--accent);}
-  .stat-mini b.teal{color:var(--accent-2);}
-
-  nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
-  nav.tabs button{
-    background:none;border:none;color:var(--text-muted);
-    font-family:'IBM Plex Sans',sans-serif;font-size:14.5px;font-weight:500;
-    padding:10px 4px;margin-right:26px;cursor:pointer;
-    border-bottom:2px solid transparent;position:relative;top:1px;
-    transition:color .15s ease, border-color .15s ease;
-  }
-  nav.tabs button:hover{color:var(--text);}
-  nav.tabs button.active{color:var(--text);border-bottom-color:var(--accent);}
-
-  .view{display:none;}
-  .view.active{display:block;}
-
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:22px;
-  }
-  .panel + .panel{margin-top:18px;}
-  h2.panel-title{
-    font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:19px;
-    margin:0 0 16px;color:var(--text);letter-spacing:.2px;
-  }
-
-  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 16px;}
-  .field{display:flex;flex-direction:column;gap:6px;}
-  .field.span-2{grid-column:span 2;}
-  .field label{font-size:12px;color:var(--text-muted);font-weight:500;}
-  .field input, .field select{
-    background:var(--panel-alt);
-    border:1px solid var(--border);
-    color:var(--text);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:13.5px;
-    padding:9px 10px;
-    border-radius:var(--radius);
-    outline:none;
-    transition:border-color .15s ease;
-    width:100%;
-  }
-  .field input::placeholder{color:var(--text-faint);font-family:'IBM Plex Sans',sans-serif;}
-  .field input:focus, .field select:focus{border-color:var(--accent-2);}
-  .form-actions{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin-top:4px;}
-  .btn{
-    background:var(--accent);color:#1a1400;border:none;
-    font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
-    padding:10px 18px;border-radius:var(--radius);cursor:pointer;
-    transition:filter .15s ease;
-  }
-  .btn:hover{filter:brightness(1.08);}
-  .btn:disabled{opacity:.5;cursor:default;}
-  .btn.ghost{
-    background:none;border:1px solid var(--border);color:var(--text-muted);font-weight:500;
-  }
-  .btn.ghost:hover{color:var(--text);border-color:var(--text-faint);}
-  .form-msg{font-size:12.5px;font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .3s ease;}
-  .form-msg.show{opacity:1;}
-  .form-msg.ok{color:var(--positive);}
-  .form-msg.err{color:var(--negative);}
-
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{
-    text-align:left;font-size:11px;font-weight:600;color:var(--text-faint);
-    padding:0 10px 10px;border-bottom:1px solid var(--border);
-    font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;
-  }
-  tbody td{padding:10px 10px;border-bottom:1px solid var(--border-soft);color:var(--text);font-family:'IBM Plex Mono',monospace;}
-  tbody tr:hover{background:rgba(255,255,255,0.02);}
-  tbody tr:last-child td{border-bottom:none;}
-  td.num{text-align:right;}
-  td.money{color:var(--positive);text-align:right;}
-  td.xp{color:var(--accent-2);text-align:right;}
-  td.actions{text-align:right;white-space:nowrap;}
-  td.actions button{
-    background:none;border:none;color:var(--text-faint);cursor:pointer;
-    font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:2px 6px;
-  }
-  td.actions button:hover{color:var(--accent);}
-  td.actions button.del:hover{color:var(--negative);}
-  .empty-state{
-    text-align:center;padding:36px 20px;color:var(--text-faint);
-    font-family:'IBM Plex Mono',monospace;font-size:13px;
-  }
-
-  .cell-with-icon{display:flex;align-items:center;gap:8px;}
-  .map-thumb{
-    width:64px;height:30px;object-fit:cover;border-radius:6px;
-    border:1px solid var(--border-soft);flex-shrink:0;
-  }
-  .condition-thumb{
-    width:28px;height:28px;object-fit:cover;border-radius:50%;
-    border:1px solid var(--border-soft);flex-shrink:0;
-  }
-
-  .filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-  .filter-row select, .filter-row input{
-    background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
-    font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius);
-  }
-
-  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
-  .stat-card{
-    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-    padding:16px 18px;
-  }
-  .stat-card .label{font-size:11.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
-  .stat-card .value{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:26px;color:var(--text);}
-  .stat-card .value.accent{color:var(--accent);}
-  .stat-card .value.teal{color:var(--accent-2);}
-
-  .breakdown-table td, .breakdown-table th{padding:9px 10px;}
-  .breakdown-table td:first-child, .breakdown-table th:first-child{font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
-
-  .highscore-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  .highscore-card{
-    background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
-    padding:16px 18px;
-  }
-  .hs-label{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);
-    letter-spacing:.3px;margin-bottom:8px;
-  }
-  .hs-value{
-    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;
-    margin-bottom:8px;
-  }
-  .hs-value.accent{color:var(--accent);}
-  .hs-value.teal{color:var(--accent-2);}
-  .hs-details{
-    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);
-    margin-bottom:14px;min-height:16px;
-  }
-  .hs-toggle{
-    background:none;border:1px solid var(--border);color:var(--text-muted);
-    font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;
-    padding:6px 12px;border-radius:var(--radius);cursor:pointer;
-  }
-  .hs-toggle:hover{color:var(--text);border-color:var(--text-faint);}
-  .hs-list{display:none;margin-top:14px;border-top:1px solid var(--border-soft);padding-top:10px;}
-  .hs-list.open{display:block;}
-  .hs-list table{font-size:12.5px;}
-  .hs-list td{padding:6px 4px;border-bottom:none;font-family:'IBM Plex Mono',monospace;}
-  .hs-list td.rank{color:var(--text-faint);width:18px;}
-  .hs-list tr:first-child td{color:var(--text);}
-
-  .chart-wrap{height:220px;margin-top:6px;}
-
-  .sub-tabs{display:flex;gap:8px;margin-bottom:18px;}
-  .sub-tabs button{
-    background:var(--panel-alt);border:1px solid var(--border);color:var(--text-muted);
-    font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;
-    padding:6px 12px;border-radius:var(--radius);cursor:pointer;
-  }
-  .sub-tabs button.active{color:var(--accent);border-color:var(--accent-dim);}
-
-  .analysis-block{display:none;}
-  .analysis-block.active{display:block;}
-
-  @media(max-width:720px){
-    .form-grid{grid-template-columns:repeat(2,1fr);}
-    .field.span-2{grid-column:span 2;}
-    .stat-row{grid-template-columns:repeat(2,1fr);}
-    .highscore-grid{grid-template-columns:1fr;}
-    header{flex-direction:column;align-items:flex-start;gap:10px;}
-    .header-right{width:100%;justify-content:space-between;}
-    .header-stats{gap:14px;}
-  }
-
-  .app-footer{
-  margin-top:32px;
-  text-align:center;
-  font-family:'IBM Plex Mono', monospace;
-  font-size:11px;
-  color:var(--text-faint);
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <link rel="icon" type="image/png" href="/images/favicon.png">
 <body>
@@ -365,11 +113,11 @@
       <div class="highscore-grid">
         <div class="highscore-card">
           <div class="hs-label">
-            <svg class="hs-icon hs-icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="9"/>
-              <path d="M12 7v10M9.5 9.3c0-1 1.1-1.8 2.5-1.8s2.5.8 2.5 1.8-1.1 1.6-2.5 1.6-2.5.7-2.5 1.7 1.1 1.8 2.5 1.8 2.5-.8 2.5-1.8" stroke-linecap="round"/>
+            <span data-i18n="hsMoneyLabel"></span>
+            <svg class="hs-icon hs-icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M12 2 21 6.5v6c0 5-4 8.5-9 9.5-5-1-9-4.5-9-9.5v-6z" stroke-linejoin="round"/>
+              <path d="M12 8v8M9.8 9.6c0-1 1-1.6 2.2-1.6s2.2.7 2.2 1.6-1 1.4-2.2 1.4-2.2.6-2.2 1.6 1 1.6 2.2 1.6 2.2-.6 2.2-1.6" stroke-linecap="round"/>
             </svg>
-          <span data-i18n="hsMoneyLabel"></span>
           </div>
           <div class="hs-value accent" id="hsMoneyValue">—</div>
           <div class="hs-details" id="hsMoneyDetails"></div>
@@ -378,10 +126,11 @@
         </div>
         <div class="highscore-card">
           <div class="hs-label">
-            <svg class="hs-icon hs-icon-xp" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M13 2 4 14h6l-1 8 9-12h-6z"/>
-            </svg>
             <span data-i18n="hsXPLabel"></span>
+              <svg class="hs-icon hs-icon-xp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <path d="M12 2 21 7v10l-9 5-9-5V7z" stroke-linejoin="round"/>
+                <path d="M13 7 8 13h4l-1 5 6-7h-4z" fill="currentColor" stroke="none"/>
+              </svg>
           </div>
           <div class="hs-value teal" id="hsXPValue">—</div>
           <div class="hs-details" id="hsXPDetails"></div>
@@ -415,76 +164,13 @@
   <footer class="app-footer">v<span id="appVersion">%%VERSION%%</span></footer>
 </div>
 
+<script src="i18n.js"></script>							   
 <script>
 const API = '/api/rounds';
 let rounds = [];
 let charts = {};
 
 const $ = sel => document.querySelector(sel);
-
-// ---------- i18n ----------
-const translations = {
-  de: {
-    brandTag: 'RUNDENTRACKER',
-    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung',
-    runCountLabel: 'RUNDEN GESAMT',
-    headerRoundsLabel: 'RUNDEN', headerMoneyLabel: '$ GESAMT', headerXPLabel: 'XP GESAMT',
-    entryTitle: 'Neue Runde eintragen',
-    labelNumber: 'Nummer', labelDate: 'Datum', labelTime: 'Uhrzeit',
-    labelMap: 'Map', labelCondition: 'Map Condition',
-    labelMoney: '$ verdient', labelXP: 'XP erhalten',
-    placeholderMap: 'z. B. Dam Battlegrounds', placeholderCondition: 'z. B. Clear, Hurricane',
-    submitBtn: 'Runde speichern',
-    msgSaved: 'Gespeichert.', msgSaveError: 'Fehler beim Speichern — Server erreichbar?',
-    recentTitle: 'Letzte Runden', listTitle: 'Alle Runden',
-    filterAllMaps: 'Alle Maps', filterAllConditions: 'Alle Conditions',
-    clearFilters: 'Filter zurücksetzen',
-    thNumber: 'Nr.', thDate: 'Datum', thTime: 'Zeit', thMap: 'Map', thCondition: 'Condition', thMoney: '$', thXP: 'XP',
-    delete: 'Löschen',
-    emptyState: 'Noch keine Runden erfasst. Trag oben deine erste Runde ein.',
-    emptyAnalysis: 'Noch keine Daten für diese Auswertung.',
-    statRounds: 'RUNDEN', statTotalMoney: 'GESAMT $', statTotalXP: 'GESAMT XP', statAvgMoney: 'Ø $ / RUNDE',
-    highscoreTitle: 'Bestleistung',
-    hsMoneyLabel: 'TOP RUN — $', hsXPLabel: 'TOP RUN — XP',
-    hsShowTop5: 'Top 5 anzeigen', hsHideTop5: 'Top 5 ausblenden',
-    hsNoData: 'Noch keine Runden erfasst.',
-    subMap: 'Pro Map', subCondition: 'Pro Condition', subMonth: 'Monatlich',
-    thRounds: 'Runden', thTotalMoney: 'Gesamt $', thAvgMoney: 'Ø $', thTotalXP: 'Gesamt XP', thAvgXP: 'Ø XP', thMonth: 'Monat',
-    chartAvgMoney: 'Ø $ pro Runde', chartTotalMoneyMonth: 'Gesamt $ pro Monat',
-    numberLocale: 'de-DE', dateLocale: 'de-DE',
-    months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
-  },
-  en: {
-    brandTag: 'RUN TRACKER',
-    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats',
-    runCountLabel: 'TOTAL RUNS',
-    headerRoundsLabel: 'RUNS', headerMoneyLabel: 'TOTAL $', headerXPLabel: 'TOTAL XP',
-    entryTitle: 'Log a new run',
-    labelNumber: 'Number', labelDate: 'Date', labelTime: 'Time',
-    labelMap: 'Map', labelCondition: 'Map Condition',
-    labelMoney: '$ earned', labelXP: 'XP gained',
-    placeholderMap: 'e.g. Dam Battlegrounds', placeholderCondition: 'e.g. Clear, Hurricane',
-    submitBtn: 'Save run',
-    msgSaved: 'Saved.', msgSaveError: 'Failed to save — is the server reachable?',
-    recentTitle: 'Recent runs', listTitle: 'All runs',
-    filterAllMaps: 'All maps', filterAllConditions: 'All conditions',
-    clearFilters: 'Reset filters',
-    thNumber: 'No.', thDate: 'Date', thTime: 'Time', thMap: 'Map', thCondition: 'Condition', thMoney: '$', thXP: 'XP',
-    delete: 'Delete',
-    emptyState: 'No runs logged yet. Add your first run above.',
-    emptyAnalysis: 'No data yet for this breakdown.',
-    statRounds: 'RUNS', statTotalMoney: 'TOTAL $', statTotalXP: 'TOTAL XP', statAvgMoney: 'AVG $ / RUN',
-    highscoreTitle: 'Best Run',
-    hsMoneyLabel: 'TOP RUN — $', hsXPLabel: 'TOP RUN — XP',
-    hsShowTop5: 'Show top 5', hsHideTop5: 'Hide top 5',
-    hsNoData: 'No runs logged yet.',
-    subMap: 'By Map', subCondition: 'By Condition', subMonth: 'Monthly',
-    thRounds: 'Runs', thTotalMoney: 'Total $', thAvgMoney: 'Avg $', thTotalXP: 'Total XP', thAvgXP: 'Avg XP', thMonth: 'Month',
-    chartAvgMoney: 'Avg $ per run', chartTotalMoneyMonth: 'Total $ per month',
-    numberLocale: 'en-US', dateLocale: 'en-GB',
-    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  }
-};
 
 let currentLang = localStorage.getItem('arclog-lang') || (navigator.language.startsWith('de') ? 'de' : 'en');
 
@@ -668,15 +354,6 @@ function escapeHTML(s){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
-
-function slugify(s){
-  return String(s||'')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') 
-    .replace(/[^a-z0-9]/g, '');
-}
-function mapImgSrc(map){ return '/images/maps/' + slugify(map) + '.webp'; }
-function conditionImgSrc(cond){ return '/images/conditions/' + slugify(cond) + '.webp'; }
 
 function renderRecentTable(){
   const recent = sortedRounds(rounds).slice(0,6);

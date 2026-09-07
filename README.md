@@ -55,6 +55,8 @@ arc-raiders-salvage-log/
 └── web/
     ├── Dockerfile
     ├── nginx.conf
+    ├── styles.css
+    ├── i18n.js
     └── index.html
 ```
 
@@ -78,11 +80,27 @@ The app will then be accessible at `http://localhost:8080` (or the port specifie
 
 ## Architecture
 
+Funcationality of the docker containers:
 ```
 web/   → nginx, serves the frontend and proxies /api/ requests to the API
 api/   → Node/Express API, communicates with Postgres
 db     → postgres:16-alpine, data stored in the "db_data" volume
 ```
+
+## Images
+
+You can include your own images to be displayed for maps and conditions. Add them as a `webp` file in the two folder `conditions` and `maps`.
+
+### Naming convention
+
+* Condition:
+  * Use the actual condition name without spaces.
+  * Example: `prospectingprobes.webp`
+* Map
+  * Use the actual map name without spaces.
+  * Example: `stellamontis.webp`
+
+If you do not include any images only the name of the map an map condition will be displayed. 
 
 ## Backing Up Data
 
@@ -123,6 +141,9 @@ git push origin x.y.z
 - Language support for English and German
 
 ## Screenshots
+
+Screenshots include local images.
+
 ### Log a run
 ![Screenshot - Log a run](docs/screenshots/arc_raiders_salvage_log_screenshot_log_run.png)
 
@@ -135,4 +156,4 @@ git push origin x.y.z
 
 ## License
 
-MIT; see [LICENSE](LICENSE).
+MIT (see [LICENSE](LICENSE))
