@@ -1,12 +1,20 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
+    init: true
     environment:
       POSTGRES_DB: arclog
       POSTGRES_USER: arclog
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arclog}
     volumes:
       - db_data:/var/lib/postgresql/data
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U arclog -d arclog"]
       interval: 5s
@@ -16,6 +24,8 @@ services:
 
   api:
     build: ./api
+    init: true
+    logging: *default-logging
     environment:
       DATABASE_URL: postgres://arclog:${POSTGRES_PASSWORD:-arclog}@db:5432/arclog
     depends_on:
@@ -28,6 +38,7 @@ services:
       context: ./web
       args:
         APP_VERSION: ${APP_VERSION:-dev}
+    init: true
     ports:
       - "${WEB_PORT:-8080}:80"
     volumes:
@@ -35,6 +46,13 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 volumes:
   db_data:

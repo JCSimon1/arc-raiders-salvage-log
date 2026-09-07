@@ -80,12 +80,13 @@ The app will then be accessible at `http://localhost:8080` (or the port specifie
 
 ## Architecture
 
-Funcationality of the docker containers:
-```
-web/   → nginx, serves the frontend and proxies /api/ requests to the API
-api/   → Node/Express API, communicates with Postgres
-db     → postgres:16-alpine, data stored in the "db_data" volume
-```
+Functionality of the docker containers:
+
+| Container | Description |
+| -------- | -------- |
+| api | Node/Express API, communicates with Postgres |
+| db | postgres:16-alpine, data stored in the "db_data" volume |
+| web | nginx, serves the frontend and proxies /api/ requests to the API |
 
 ## Images
 
