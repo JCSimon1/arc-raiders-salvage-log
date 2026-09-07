@@ -27,6 +27,8 @@ services:
     build: ./web
     ports:
       - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./web/images:/usr/share/nginx/html/images:ro
     depends_on:
       - api
     restart: unless-stopped
