@@ -252,6 +252,14 @@
     .header-right{width:100%;justify-content:space-between;}
     .header-stats{gap:14px;}
   }
+
+  .app-footer{
+  margin-top:32px;
+  text-align:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--text-faint);
+}
 </style>
 </head>
 <body>
@@ -392,7 +400,7 @@
       </div>
     </div>
   </div>
-
+  <footer class="app-footer">v<span id="appVersion">%%VERSION%%</span></footer>
 </div>
 
 <script>

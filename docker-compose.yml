@@ -24,7 +24,10 @@ services:
     restart: unless-stopped
 
   web:
-    build: ./web
+    build:
+      context: ./web
+      args:
+        APP_VERSION: ${APP_VERSION:-dev}
     ports:
       - "${WEB_PORT:-8080}:80"
     volumes:

@@ -56,6 +56,7 @@ arc-raiders-salvage-log/
 ## Quick Start
 
 ```bash
+export APP_VERSION=$(git describe --tags --always)
 docker compose up -d --build
 ```
 
@@ -79,6 +80,7 @@ docker compose exec db pg_dump -U arclog arclog > backup.sql
 
 ```bash
 git pull
+export APP_VERSION=$(git describe --tags --always)
 docker compose up -d --build
 ```
 

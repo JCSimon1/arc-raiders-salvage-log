@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Inject version into frontend
+        run: sed -i "s/%%VERSION%%/${GITHUB_REF_NAME}/g" web/index.html
+      
       - name: Build release archive
         run: |
           zip -r "arc-log-${GITHUB_REF_NAME}.zip" . \
