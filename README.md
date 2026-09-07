@@ -55,7 +55,7 @@ arc-raiders-salvage-log/
 └── web/
     ├── Dockerfile
     ├── nginx.conf
-    ├── styles.css
+    ├── style.css
     ├── i18n.js
     └── index.html
 ```

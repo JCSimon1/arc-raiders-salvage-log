@@ -688,16 +688,25 @@ function drawPieChart(canvasId, labels, data){
   });
 }
 
-function distTableHTML(entries){
+function distTableHTML(entries, type){
   const total = entries.reduce((s,e)=>s+e.count,0);
   if(entries.length===0 || total===0){
     return '<div class="empty-state">' + t('emptyAnalysis') + '</div>';
   }
+  const isOthers = key => key === t('distOthers');
   const rows = entries.map(e=>{
     const pct = Math.round((e.count/total)*1000)/10;
+    let cell;
+    if(isOthers(e.key)){
+      cell = escapeHTML(e.key);
+    } else if(type==='map'){
+      cell = `<div class="cell-with-icon"><img class="map-thumb" src="${mapImgSrc(e.key)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(e.key)}</div>`;
+    } else {
+      cell = `<div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(e.key)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(e.key)}</div>`;
+    }
     return `
       <tr>
-        <td>${escapeHTML(e.key)}</td>
+        <td>${cell}</td>
         <td>${e.count}</td>
         <td>${pct}%</td>
       </tr>
@@ -724,14 +733,14 @@ function renderDistribution(){
   const mapEntries = [...mapGroups.entries()].map(([key,list])=>({key, count:list.length}))
     .sort((a,b)=>b.count-a.count);
   drawPieChart('chartMapDist', mapEntries.map(e=>e.key), mapEntries.map(e=>e.count));
-  $('#tableMapDist').innerHTML = distTableHTML(mapEntries);
+  $('#tableMapDist').innerHTML = distTableHTML(mapEntries, 'map');
 
   const condGroups = groupBy(rounds, r=>r.condition||'—');
   const condEntriesAll = [...condGroups.entries()].map(([key,list])=>({key, count:list.length}))
     .sort((a,b)=>b.count-a.count);
   const condEntries = topNWithOthers(condEntriesAll, 5);
   drawPieChart('chartConditionDist', condEntries.map(e=>e.key), condEntries.map(e=>e.count));
-  $('#tableConditionDist').innerHTML = distTableHTML(condEntries);
+  $('#tableConditionDist').innerHTML = distTableHTML(condEntries, 'condition');
 }
 
 // ---------- Global refresh ----------
