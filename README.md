@@ -43,8 +43,8 @@ with analytics broken down by map, map condition, and month.
   - [Features](#features)
   - [Screenshots](#screenshots)
     - [Log a run](#log-a-run)
-    - [Overview](#overview)
     - [Stats](#stats)
+    - [Distribution (Map / Condition)](#distribution-map--condition)
   - [License](#license)
 
 ---
@@ -81,6 +81,7 @@ arc-raiders-salvage-log/
 ├── images/
 │   ├── conditions/
 │   ├── maps/
+│   └── companies/
 └── web/
     ├── Dockerfile
     ├── nginx.conf
@@ -139,6 +140,9 @@ You can include your own images to be displayed for maps and conditions. Add the
 * Map
   * Use the actual map name without spaces.
   * Example: `stellamontis.webp`
+* (optional) Companies:
+  * Company names to display in the marquee ticker at the bottom of the page
+  * Example: `J_Kozma_Ventures_Logo.webp`
 
 If you do not include any images only the name of the map an map condition will be displayed. 
 
@@ -186,20 +190,21 @@ git push origin x.y.z
     - Monthly
 - Language support for English and German
 - Healthchecks for all containers
+- Fun: Marquee ticker 
 
 --- 
 ## Screenshots
 
-Screenshots include local images.
+Screenshots include local images that are not part of the repository. Those can be added to the respective `/image` folders following the naming convention in [Naming convention](#Namingg-convention).
 
 ### Log a run
 ![Screenshot - Log a run](docs/screenshots/arc_raiders_salvage_log_screenshot_log_run.png)
 
-### Overview
-![Screenshot - Overview](docs/screenshots/arc_raiders_salvage_log_screenshot_overview.png)
-
 ### Stats
 ![Screenshot - Stats](docs/screenshots/arc_raiders_salvage_log_screenshot_stats.png)
+
+### Distribution (Map / Condition)
+![Screenshot - Overview](docs/screenshots/arc_raiders_salvage_log_screenshot_overview.png)
 
 ---
 ## License
