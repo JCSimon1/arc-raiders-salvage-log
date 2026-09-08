@@ -10,9 +10,19 @@
   </a>
 </p>
 
+
+# ARC LOG — Match Tracker for Arc Raiders
+
+![Arc Raiders Salvage Log](docs/screenshots/Banner.png)
+
+Self-hosted simple web app for tracking Arc Raiders rounds (map, condition, currency, and XP)
+with analytics broken down by map, map condition, and month.
+
+**Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.
+
 # Table of contents
-- [Table of contents](#table-of-contents)
 - [ARC LOG — Match Tracker for Arc Raiders](#arc-log--match-tracker-for-arc-raiders)
+- [Table of contents](#table-of-contents)
   - [Repository details](#repository-details)
     - [Folder structure](#folder-structure)
   - [Quick Start](#quick-start)
@@ -30,16 +40,6 @@
     - [Overview](#overview)
     - [Stats](#stats)
   - [License](#license)
-
-
-# ARC LOG — Match Tracker for Arc Raiders
-
-![Arc Raiders Salvage Log](docs/screenshots/Banner.png)
-
-Self-hosted simple web app for tracking Arc Raiders rounds (map, condition, currency, and XP)
-with analytics broken down by map, map condition, and month.
-
-**Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.
 
 ## Repository details
 
