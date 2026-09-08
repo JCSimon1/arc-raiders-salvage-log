@@ -10,7 +10,7 @@
   </a>
 </p>
 
-
+---
 # ARC LOG — Match Tracker for Arc Raiders
 
 ![Arc Raiders Salvage Log](docs/screenshots/Banner.png)
@@ -18,7 +18,13 @@
 Self-hosted simple web app for tracking Arc Raiders rounds (map, condition, currency, and XP)
 with analytics broken down by map, map condition, and month.
 
-**Stack:** nginx (frontend) → Express API → PostgreSQL, all via Docker Compose.
+**Docker Compose stack:** 
+
+- nginx (frontend)
+- Express API
+- PostgreSQL
+
+---
 
 # Table of contents
 - [ARC LOG — Match Tracker for Arc Raiders](#arc-log--match-tracker-for-arc-raiders)
@@ -40,6 +46,8 @@ with analytics broken down by map, map condition, and month.
     - [Overview](#overview)
     - [Stats](#stats)
   - [License](#license)
+
+---
 
 ## Repository details
 
@@ -83,6 +91,7 @@ arc-raiders-salvage-log/
 
 The structure above does only contain files to actually create and run the containers. Documentation is in the folder `/docs/`.
 
+---
 ## Quick Start
 
 ### First start
@@ -101,6 +110,7 @@ docker compose up -d --build
 
 The app will then be accessible at `http://localhost:8080` (or the port specified in environment variable `WEB_PORT`).
 
+---
 ## Architecture
 
 Functionality of the docker containers:
@@ -111,10 +121,12 @@ Functionality of the docker containers:
 | db | postgres:16-alpine, data stored in the "db_data" volume |
 | web | nginx, serves the frontend and proxies /api/ requests to the API |
 
+---
 ## API
 
 See [docs/api.md](docs/api.md) for the complete API reference.
 
+---
 ## Images
 
 You can include your own images to be displayed for maps and conditions. Add them as a `webp` file in the two folder `conditions` and `maps`.
@@ -130,12 +142,14 @@ You can include your own images to be displayed for maps and conditions. Add the
 
 If you do not include any images only the name of the map an map condition will be displayed. 
 
+---
+
 ## Backing Up Data
 
 ```bash
 docker compose exec db pg_dump -U arclog arclog > backup.sql
 ```
-
+---
 ## Updating
 
 Execute the update script
@@ -145,6 +159,7 @@ Execute the update script
 
 The script pulls the latest changes, determines the current version number based on the Git tag, and rebuilds the containers.
 
+---
 ## Versioning 
 
 The version number displayed in the footer is automatically derived from the current Git tag (`git describe --tags --always`) during the build process. To tag a new release:
@@ -155,9 +170,12 @@ git tag -a x.y.z -m "Description of the commit"
 git push origin x.y.z
 ```
 
+---
+
 ## Features
 
 - Log a run / round
+- Edit / delete round
 - Overview of last runs
 - Show statistics
   - No. of rounds, total/avg. $ earned, total XP
@@ -167,7 +185,9 @@ git push origin x.y.z
     - By Condition
     - Monthly
 - Language support for English and German
+- Healthchecks for all containers
 
+--- 
 ## Screenshots
 
 Screenshots include local images.
@@ -181,7 +201,7 @@ Screenshots include local images.
 ### Stats
 ![Screenshot - Stats](docs/screenshots/arc_raiders_salvage_log_screenshot_stats.png)
 
-
+---
 ## License
 
 MIT (see [LICENSE](LICENSE))
