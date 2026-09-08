@@ -195,7 +195,7 @@ git push origin x.y.z
 --- 
 ## Screenshots
 
-Screenshots include local images that are not part of the repository. Those can be added to the respective `/image` folders following the naming convention in [Naming convention](#Namingg-convention).
+Screenshots include local images that are not part of the repository. Those can be added to the respective `/image` folders following the naming convention in [Naming convention](#Naming-convention).
 
 ### Log a run
 ![Screenshot - Log a run](docs/screenshots/arc_raiders_salvage_log_screenshot_log_run.png)
