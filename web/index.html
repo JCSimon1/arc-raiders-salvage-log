@@ -177,6 +177,12 @@
       </div>
     </div>
   </div>
+  <div class="ticker-wrap">
+    <div class="ticker-label" data-i18n="tickerLabel"></div>
+      <div class="ticker-viewport">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+  </div>
   <footer class="app-footer">v<span id="appVersion">%%VERSION%%</span></footer>
 </div>
 
@@ -188,6 +194,36 @@ let charts = {};
 let editingId = null;
 
 const $ = sel => document.querySelector(sel);
+const COMPANY_LOGOS = [
+  'J_Kozma_Ventures_Logo.webp',
+  'Armata_Logo.webp',
+  'Arqzian_Logo.webp',
+  'Astraventuro_Logo.webp',
+  'Avantale_Circular_Logo.webp',
+  'Avantale_Logo.webp',
+  'Convinio_Logo.webp',
+  'Enelica_Logo.webp',
+  'Erma_Cora_Logo.webp',
+  'Galleria_Soldanella_Logo.webp',
+  'Guardia_Logo.webp',
+  'Istituto_Alessia_Pavanelli_Logo.webp',
+  'J_Kozma_Ventures_Logo.webp',
+  'Jiangsu_Romagna_Logo.webp',
+  'Lanza_Logo.webp',
+  'Lotto_Logo.webp',
+  'Mantikor_Logo.webp',
+  'Milae_Analyz_Logo.webp',
+  'Nexafuel_Logo.webp',
+  'Popet_Logo.webp',
+  'Rojalid_Logo.webp',
+  'Saetta_Logo.webp',
+  'Sogoslanda_Logo.webp',
+  'Stella_Montis_Logo.webp',
+  'Su_Durante_Logo.webp',
+  'Supracosta_Logo.webp',
+  'Tanoo_Logo.webp',
+  'Vigorosa_Logo.webp'
+];
 
 let currentLang = localStorage.getItem('arclog-lang') || (navigator.language.startsWith('de') ? 'de' : 'en');
 
@@ -231,6 +267,25 @@ function setStatus(state){
   const dot = $('#statusDot');
   dot.classList.remove('ok','err');
   if(state) dot.classList.add(state);
+}
+
+// ---------- Logo ticker / marquee ----------
+function companyDisplayName(filename){
+  return filename
+    .replace(/\.webp$/i, '')
+    .replace(/_Logo$/i, '')
+    .replace(/_/g, ' ');
+}
+
+function renderTicker(){
+  const track = $('#tickerTrack');
+  if(!track || COMPANY_LOGOS.length === 0) return;
+  const itemHTML = COMPANY_LOGOS.map(file => `
+    <img src="/images/companies/${file}" alt="${escapeHTML(companyDisplayName(file))}"
+         title="${escapeHTML(companyDisplayName(file))}" loading="lazy" onerror="this.remove()">
+  `).join('');
+  // zweimal rendern für nahtlosen Loop
+  track.innerHTML = itemHTML + itemHTML;
 }
 
 // ---------- API ----------
@@ -889,6 +944,7 @@ function refreshAll(){
   applyStaticTranslations();
   populateFilterOptions();
   prefillForm();
+  renderTicker();
   try{
     await loadRounds();
     setStatus('ok');

@@ -36,7 +36,8 @@ const translations = {
     distRoundsSuffix: 'Runden', distOthers: 'Andere',
     thPercent: '%',
     numberLocale: 'de-DE', dateLocale: 'de-DE',
-    months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
+    months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+    tickerLabel: 'UNTERSTÜTZT VON'
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -75,6 +76,7 @@ const translations = {
     distRoundsSuffix: 'runs', distOthers: 'Others',
     thPercent: '%',
     numberLocale: 'en-US', dateLocale: 'en-GB',
-    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    tickerLabel: 'BACKED BY'
   }
 };

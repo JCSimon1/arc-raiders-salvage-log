@@ -282,6 +282,52 @@ td.actions button.del:hover{color:var(--negative);}
   .header-stats{gap:14px;}
 }
 
+.ticker-wrap{
+  margin-top:32px;
+  border-top:1px solid var(--border);
+  padding-top:14px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.ticker-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:.5px;
+  color:var(--text-faint);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.ticker-viewport{
+  overflow:hidden;
+  flex:1;
+  mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.ticker-track{
+  display:flex;
+  align-items:center;
+  gap:36px;
+  width:max-content;
+  animation:ticker-scroll 40s linear infinite;
+}
+.ticker-track img{
+  height:26px;
+  width:auto;
+  object-fit:contain;
+  opacity:.55;
+  filter:grayscale(1);
+  transition:opacity .2s ease, filter .2s ease;
+}
+.ticker-track img:hover{
+  opacity:1;
+  filter:grayscale(0);
+}
+@keyframes ticker-scroll{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); }
+}
+
 .app-footer{
 margin-top:32px;
 text-align:center;
