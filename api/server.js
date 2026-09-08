@@ -86,6 +86,35 @@ app.post('/api/rounds', async (req, res) => {
   }
 });
 
+app.put('/api/rounds/:id', async (req, res) => {
+  const { round_number, round_date, round_time, map, map_condition, money, xp } = req.body;
+  if (!round_date || !round_time || !map || !map_condition) {
+    return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE rounds
+       SET round_number = $1,
+           round_date = $2,
+           round_time = $3,
+           map = $4,
+           map_condition = $5,
+           money = $6,
+           xp = $7
+       WHERE id = $8
+       RETURNING *`,
+      [round_number, round_date, round_time, map, map_condition, money, xp, req.params.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Runde nicht gefunden.' });
+    }
+    res.json(toApi(rows[0]));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Runde nicht aktualisieren.' });
+  }
+});
+
 app.delete('/api/rounds/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM rounds WHERE id = $1', [req.params.id]);

@@ -41,7 +41,7 @@
 
   <div class="view active" id="view-entry">
     <div class="panel">
-      <h2 class="panel-title" data-i18n="entryTitle"></h2>
+      <h2 class="panel-title" id="entryPanelTitle" data-i18n="entryTitle"></h2>
       <form id="roundForm" class="form-grid">
         <div class="field">
           <label for="f-number" data-i18n="labelNumber"></label>
@@ -82,6 +82,7 @@
         </div>
         <div class="form-actions">
           <button type="submit" class="btn" id="submitBtn" data-i18n="submitBtn"></button>
+          <button type="button" class="btn ghost hidden" id="cancelEditBtn" data-i18n="cancelEdit"></button>
           <span class="form-msg" id="formMsg"></span>
         </div>
       </form>
@@ -185,6 +186,7 @@
 const API = '/api/rounds';
 let rounds = [];
 let charts = {};
+let editingId = null;
 
 const $ = sel => document.querySelector(sel);
 
@@ -209,6 +211,10 @@ function applyStaticTranslations(){
   document.documentElement.lang = currentLang;
   $('#langDE').classList.toggle('active', currentLang==='de');
   $('#langEN').classList.toggle('active', currentLang==='en');
+  // Entry-Panel-Titel und Submit-Button hängen vom Bearbeitungs-Modus ab,
+  // die generische data-i18n-Schleife oben setzt sie erstmal auf den Default zurück.
+  $('#entryPanelTitle').textContent = editingId ? t('editTitle') : t('entryTitle');
+  $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();
 }
 
@@ -249,6 +255,23 @@ async function createRound(entry){
     })
   });
   if(!res.ok) throw new Error('save failed');
+  return res.json();
+}
+async function updateRound(id, entry){
+  const res = await fetch(API + '/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      round_number: entry.number,
+      round_date: entry.date,
+      round_time: entry.time,
+      map: entry.map,
+      map_condition: entry.condition,
+      money: entry.money,
+      xp: entry.xp
+    })
+  });
+  if(!res.ok) throw new Error('update failed');
   return res.json();
 }
 async function deleteRound(id){
@@ -298,10 +321,47 @@ function showMsg(text, kind){
   setTimeout(()=>msg.classList.remove('show'), 2200);
 }
 
+function enterEditMode(round){
+  editingId = round.id;
+  $('#f-number').value = round.number;
+  $('#f-date').value = round.date;
+  $('#f-time').value = round.time;
+  $('#f-map').value = round.map;
+  $('#f-condition').value = round.condition;
+  $('#f-money').value = round.money;
+  $('#f-xp').value = round.xp;
+  $('#entryPanelTitle').textContent = t('editTitle');
+  $('#submitBtn').textContent = t('updateBtn');
+  $('#cancelEditBtn').classList.remove('hidden');
+
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+  $('nav.tabs button[data-view="entry"]').classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('#view-entry').classList.add('active');
+
+  $('#roundForm').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function exitEditMode(){
+  editingId = null;
+  form.reset();
+  prefillForm();
+  $('#f-money').value='';
+  $('#f-xp').value='';
+  $('#entryPanelTitle').textContent = t('entryTitle');
+  $('#submitBtn').textContent = t('submitBtn');
+  $('#cancelEditBtn').classList.add('hidden');
+}
+
+$('#cancelEditBtn').addEventListener('click', ()=>{
+  exitEditMode();
+});
+
 form.addEventListener('submit', async e=>{
   e.preventDefault();
   const submitBtn = $('#submitBtn');
   submitBtn.disabled = true;
+  const isEditing = !!editingId;
   const entry = {
     number: Number($('#f-number').value),
     date: $('#f-date').value,
@@ -312,17 +372,18 @@ form.addEventListener('submit', async e=>{
     xp: Number($('#f-xp').value)
   };
   try{
-    await createRound(entry);
+    if(isEditing){
+      await updateRound(editingId, entry);
+    } else {
+      await createRound(entry);
+    }
     await loadRounds();
-    form.reset();
-    prefillForm();
-    $('#f-money').value='';
-    $('#f-xp').value='';
-    showMsg(t('msgSaved'), 'ok');
+    exitEditMode();
+    showMsg(isEditing ? t('msgUpdated') : t('msgSaved'), 'ok');
     setStatus('ok');
     refreshAll();
   }catch(err){
-    showMsg(t('msgSaveError'), 'err');
+    showMsg(isEditing ? t('msgUpdateError') : t('msgSaveError'), 'err');
     setStatus('err');
   }finally{
     submitBtn.disabled = false;
@@ -354,7 +415,7 @@ function tableHTML(list, opts){
       <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
-      ${editable? `<td class="actions"><button class="del" data-id="${r.id}">${t('delete')}</button></td>`:''}
+      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}">${t('delete')}</button></td>`:''}
     </tr>
   `).join('');
   return `
@@ -375,6 +436,7 @@ function escapeHTML(s){
 function renderRecentTable(){
   const recent = sortedRounds(rounds).slice(0,6);
   $('#recentTableWrap').innerHTML = tableHTML(recent);
+  bindEditButtons('#recentTableWrap');
   bindDeleteButtons('#recentTableWrap');
 }
 
@@ -399,6 +461,7 @@ function renderFullTable(){
     return true;
   });
   $('#fullTableWrap').innerHTML = tableHTML(sortedRounds(list));
+  bindEditButtons('#fullTableWrap');
   bindDeleteButtons('#fullTableWrap');
 }
 
@@ -412,11 +475,23 @@ function populateFilterOptions(){
   fm.value = curM; fc.value = curC;
 }
 
+function bindEditButtons(scopeSel){
+  document.querySelectorAll(scopeSel+' .edit').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const round = rounds.find(r=>String(r.id)===String(btn.dataset.id));
+      if(round) enterEditMode(round);
+    });
+  });
+}
+
 function bindDeleteButtons(scopeSel){
   document.querySelectorAll(scopeSel+' .del').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       try{
         await deleteRound(btn.dataset.id);
+        if(editingId && String(editingId)===String(btn.dataset.id)){
+          exitEditMode();
+        }
         await loadRounds();
         setStatus('ok');
         refreshAll();
