@@ -10,6 +10,27 @@
   </a>
 </p>
 
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [ARC LOG — Match Tracker for Arc Raiders](#arc-log--match-tracker-for-arc-raiders)
+  - [Repository details](#repository-details)
+    - [Folder structure](#folder-structure)
+  - [Quick Start](#quick-start)
+    - [First start](#first-start)
+  - [Architecture](#architecture)
+  - [API](#api)
+  - [Images](#images)
+    - [Naming convention](#naming-convention)
+  - [Backing Up Data](#backing-up-data)
+  - [Updating](#updating)
+  - [Versioning](#versioning)
+  - [Features](#features)
+  - [Screenshots](#screenshots)
+    - [Log a run](#log-a-run)
+    - [Overview](#overview)
+    - [Stats](#stats)
+  - [License](#license)
+
 
 # ARC LOG — Match Tracker for Arc Raiders
 
