@@ -60,6 +60,8 @@ arc-raiders-salvage-log/
     └── index.html
 ```
 
+The structure above does only contain files to actually create and run the containers. Documentation is in the folder `/docs/`.
+
 ## Quick Start
 
 ### First start
@@ -87,6 +89,10 @@ Functionality of the docker containers:
 | api | Node/Express API, communicates with Postgres |
 | db | postgres:16-alpine, data stored in the "db_data" volume |
 | web | nginx, serves the frontend and proxies /api/ requests to the API |
+
+## API
+
+See [docs/api.md](docs/api.md) for the complete API reference.
 
 ## Images
 
