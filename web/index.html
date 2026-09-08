@@ -109,7 +109,6 @@
 
   <div class="view" id="view-analysis">
     <div class="stat-row" id="globalStats"></div>
-
     <div class="panel">
       <h2 class="panel-title" data-i18n="highscoreTitle"></h2>
       <div class="highscore-grid">
@@ -544,8 +543,9 @@ function renderGlobalStats(){
   $('#globalStats').innerHTML = `
     <div class="stat-card"><div class="label">${t('statRounds')}</div><div class="value">${s.count}</div></div>
     <div class="stat-card"><div class="label">${t('statTotalMoney')}</div><div class="value accent">${fmtMoney(s.totalMoney)}</div></div>
-    <div class="stat-card"><div class="label">${t('statTotalXP')}</div><div class="value teal">${fmtXP(s.totalXP)}</div></div>
     <div class="stat-card"><div class="label">${t('statAvgMoney')}</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
+    <div class="stat-card"><div class="label">${t('statTotalXP')}</div><div class="value teal">${fmtXP(s.totalXP)}</div></div>
+    <div class="stat-card"><div class="label">${t('statAvgXP')}</div><div class="value teal">${fmtXP(Math.round(s.avgXP))}</div></div> 
   `;
 }
 
