@@ -640,7 +640,20 @@ function renderBreakdown(field, tableId, chartId){
       </table>
     `;
   }
-  drawBarChart(chartId, entries.map(e=>e.key), entries.map(e=>Math.round(e.avgMoney)), t('chartAvgMoney'));
+  drawBarChart(chartId, entries.map(e=>e.key), [
+  {
+    data: entries.map(e=>Math.round(e.avgMoney)),
+    label: t('chartAvgMoney'),
+    bg: 'rgba(232,163,61,0.55)',
+    border: 'rgba(232,163,61,0.9)'
+  },
+  {
+    data: entries.map(e=>Math.round(e.avgXP)),
+    label: t('chartAvgXP'),
+    bg: 'rgba(92,139,143,0.55)',
+    border: 'rgba(92,139,143,0.9)'
+  }
+]);
 }
 
 function renderMonthlyBreakdown(){
@@ -672,14 +685,27 @@ function renderMonthlyBreakdown(){
       </table>
     `;
   }
-  drawBarChart('chartMonth', entries.map(e=>formatMonth(e.key)), entries.map(e=>e.totalMoney), t('chartTotalMoneyMonth'));
+  drawBarChart('chartMonth', entries.map(e=>formatMonth(e.key)), [
+  {
+    data: entries.map(e=>e.totalMoney),
+    label: t('chartTotalMoneyMonth'),
+    bg: 'rgba(232,163,61,0.55)',
+    border: 'rgba(232,163,61,0.9)'
+  },
+  {
+    data: entries.map(e=>e.totalXP),
+    label: t('chartTotalXPMonth'),
+    bg: 'rgba(92,139,143,0.55)',
+    border: 'rgba(92,139,143,0.9)'
+  }
+]);
 }
 function formatMonth(ym){
   const [y,m] = ym.split('-');
   return t('months')[Number(m)-1] + ' ' + y;
 }
 
-function drawBarChart(canvasId, labels, data, label){
+function drawBarChart(canvasId, labels, datasets){
   const ctx = document.getElementById(canvasId);
   if(charts[canvasId]) charts[canvasId].destroy();
   if(labels.length===0) return;
@@ -687,20 +713,25 @@ function drawBarChart(canvasId, labels, data, label){
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        label,
-        data,
-        backgroundColor: 'rgba(232,163,61,0.55)',
-        borderColor: 'rgba(232,163,61,0.9)',
+      datasets: datasets.map(ds=>({
+        label: ds.label,
+        data: ds.data,
+        backgroundColor: ds.bg,
+        borderColor: ds.border,
         borderWidth: 1,
         borderRadius: 2,
-        maxBarThickness: 46
-      }]
+        maxBarThickness: 23
+      }))
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display:false } },
+      plugins: {
+        legend: {
+          display: datasets.length > 1,
+          labels: { color:'#8b949a', font:{family:'IBM Plex Mono', size:11}, boxWidth:12 }
+        }
+      },
       scales: {
         x: { ticks: { color:'#8b949a', font:{family:'IBM Plex Mono', size:11} }, grid: { color:'rgba(255,255,255,0.04)' } },
         y: { ticks: { color:'#8b949a', font:{family:'IBM Plex Mono', size:11} }, grid: { color:'rgba(255,255,255,0.06)' } }
