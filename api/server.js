@@ -22,12 +22,48 @@ const SCHEMA = `
     xp INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  CREATE TABLE IF NOT EXISTS loot_items (
+    id SERIAL PRIMARY KEY,
+    item_key TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    amount INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
 `;
+
+// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
+// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
+const LOOT_CATALOG = [
+  { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
+  { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
+  { key: 'assessormatrix',      name: 'Assessor Matrix',      price: 5000 },
+  { key: 'bastioncell',         name: 'Bastion Cell',         price: 3000 },
+  { key: 'bombadiercell',       name: 'Bombadier Cell',       price: 3000 },
+  { key: 'leaperpulseunit',     name: 'Leaper Pulse Unit',    price: 3000 },
+  { key: 'rocketeerdriver',     name: 'Rocketeer Driver',     price: 3000 },
+  { key: 'turbinecompressor',   name: 'Turbine Compressor',   price: 5000 },
+  { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
+];
+
+async function seedLootCatalog() {
+  for (const item of LOOT_CATALOG) {
+    await pool.query(
+      `INSERT INTO loot_items (item_key, name, price)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (item_key) DO UPDATE
+       SET name = EXCLUDED.name, price = EXCLUDED.price`,
+      [item.key, item.name, item.price]
+    );
+  }
+}
 
 async function initDb(retries = 20, delayMs = 1500) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       await pool.query(SCHEMA);
+      await seedLootCatalog();
       console.log('Datenbank bereit.');
       return;
     } catch (err) {
@@ -50,6 +86,15 @@ function toApi(row) {
     condition: row.map_condition,
     money: row.money,
     xp: row.xp
+  };
+}
+
+function toLootApi(row) {
+  return {
+    key: row.item_key,
+    name: row.name,
+    price: row.price,
+    amount: row.amount
   };
 }
 
@@ -122,6 +167,41 @@ app.delete('/api/rounds/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Konnte Runde nicht löschen.' });
+  }
+});
+
+// ---------- Loot ----------
+
+app.get('/api/loot', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM loot_items ORDER BY price DESC, name ASC');
+    res.json(rows.map(toLootApi));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Loot-Items nicht laden.' });
+  }
+});
+
+app.put('/api/loot/:key', async (req, res) => {
+  const amount = Number(req.body.amount);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return res.status(400).json({ error: 'Ungültige Menge.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE loot_items
+       SET amount = $1, updated_at = now()
+       WHERE item_key = $2
+       RETURNING *`,
+      [amount, req.params.key]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Item nicht gefunden.' });
+    }
+    res.json(toLootApi(rows[0]));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Menge nicht aktualisieren.' });
   }
 });
 

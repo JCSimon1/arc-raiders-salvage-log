@@ -1,7 +1,7 @@
 const translations = {
   de: {
     brandTag: 'RUNDENTRACKER',
-    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung',
+    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung', navLoot: 'Loot',
     runCountLabel: 'RUNDEN GESAMT',
     headerRoundsLabel: 'RUNDEN', headerMoneyLabel: '$ GESAMT', headerXPLabel: 'XP GESAMT',
     entryTitle: 'Neue Runde eintragen',
@@ -37,11 +37,15 @@ const translations = {
     thPercent: '%',
     numberLocale: 'de-DE', dateLocale: 'de-DE',
     months: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
-    tickerLabel: 'UNTERSTÜTZT VON'
+    tickerLabel: 'UNTERSTÜTZT VON',
+    lootTitle: 'Loot Stash',
+    thItem: 'Item', thPrice: 'Preis', thAmount: 'Menge', thSum: 'Summe',
+    lootTotalLabel: 'GESAMTWERT STASH',
+    lootSaveError: 'Fehler beim Speichern der Menge — Server erreichbar?'
   },
   en: {
     brandTag: 'RUN TRACKER',
-    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution',
+    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution', navLoot: 'Loot',
     runCountLabel: 'TOTAL RUNS',
     headerRoundsLabel: 'RUNS', headerMoneyLabel: 'TOTAL $', headerXPLabel: 'TOTAL XP',
     entryTitle: 'Log a new run',
@@ -77,6 +81,10 @@ const translations = {
     thPercent: '%',
     numberLocale: 'en-US', dateLocale: 'en-GB',
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-    tickerLabel: 'BACKED BY'
+    tickerLabel: 'BACKED BY',
+    lootTitle: 'Loot Stash',
+    thItem: 'Item', thPrice: 'Price', thAmount: 'Amount', thSum: 'Sum',
+    lootTotalLabel: 'TOTAL STASH VALUE',
+    lootSaveError: 'Failed to save amount — is the server reachable?'
   }
 };

@@ -335,3 +335,39 @@ font-family:'IBM Plex Mono', monospace;
 font-size:11px;
 color:var(--text-faint);
 }
+
+.loot-total-card{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.loot-total-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  letter-spacing:.4px;
+  color:var(--text-faint);
+}
+.loot-total-value{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  font-size:36px;
+  color:var(--accent);
+  filter:drop-shadow(0 0 14px rgba(232,163,61,0.25));
+}
+
+input.loot-amount-input{
+  background:var(--panel-alt);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13.5px;
+  padding:6px 8px;
+  border-radius:var(--radius);
+  outline:none;
+  width:90px;
+  text-align:right;
+  transition:border-color .15s ease;
+}
+input.loot-amount-input:focus{border-color:var(--accent-2);}
