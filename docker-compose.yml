@@ -4,6 +4,10 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+networks:
+  backend:
+  frontend:
+
 services:
   db:
     image: postgres:16-alpine
@@ -12,15 +16,16 @@ services:
       POSTGRES_DB: arclog
       POSTGRES_USER: arclog
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arclog}
+    networks: [backend]
     volumes:
       - db_data:/var/lib/postgresql/data
-    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U arclog -d arclog"]
       interval: 5s
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    logging: *default-logging
     deploy:
       resources:
         limits:
@@ -32,9 +37,9 @@ services:
   api:
     build: ./api
     init: true
-    logging: *default-logging
     environment:
       DATABASE_URL: postgres://arclog:${POSTGRES_PASSWORD:-arclog}@db:5432/arclog
+    networks: [backend, frontend]
     depends_on:
       db:
         condition: service_healthy
@@ -45,6 +50,7 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    logging: *default-logging
     deploy:
       resources:
         limits:
@@ -59,20 +65,21 @@ services:
       args:
         APP_VERSION: ${APP_VERSION:-dev}
     init: true
+    networks: [frontend]
     ports:
       - "${WEB_PORT:-8080}:80"
     volumes:
       - ${IMAGE_MOUNT:-./images}:/usr/share/nginx/html/images:ro
     depends_on:
       - api
-    restart: unless-stopped
-    logging: *default-logging
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
+    restart: unless-stopped
+    logging: *default-logging
     deploy:
       resources:
         limits:

@@ -70,24 +70,22 @@ cp .env.example .env
 
 ```bash
 arc-raiders-salvage-log/
-├── docker-compose.yml
-├── .env
-├── .env.example
-├── update.sh
-├── api/
+├── api
 │   ├── Dockerfile
 │   ├── package.json
 │   └── server.js
-├── images/
-│   ├── conditions/
-│   ├── maps/
-│   └── companies/
-└── web/
-    ├── Dockerfile
-    ├── nginx.conf
-    ├── style.css
-    ├── i18n.js
-    └── index.html
+├── docs
+│   ├── screenshots
+│   └── api.md
+├── web
+│   ├── Dockerfile
+│   ├── i18n.js
+│   ├── index.html
+│   ├── nginx.conf
+│   └── style.css
+├── .env.example
+├── docker-compose.yml
+└── update.sh
 ```
 
 The structure above does only contain files to actually create and run the containers. Documentation is in the folder `/docs/`.
@@ -134,18 +132,19 @@ You can include your own images to be displayed for maps and conditions. Add the
 
 ### Naming convention
 
-* Condition:
+* (optional) Condition
   * Use the actual condition name without spaces.
   * Example: `prospectingprobes.webp`
-* Map
+  * If you do not include any images only the name of the condition will be displayed
+* (optional) Map
   * Use the actual map name without spaces.
   * Example: `stellamontis.webp`
-* (optional) Companies:
+  * If you do not include any images only the name of the map name will be displayed
+* (optional) Companies
   * Company names to display in the marquee ticker at the bottom of the page
   * Example: `J_Kozma_Ventures_Logo.webp`
-
-If you do not include any images only the name of the map an map condition will be displayed. 
-
+  * If you do not include any images the ticker will not be displayed
+ 
 ---
 
 ## Backing Up Data
