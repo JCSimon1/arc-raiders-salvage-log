@@ -39,8 +39,8 @@ const SCHEMA = `
   );
 `;
 
-// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
-// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
+// Static item catalog. Update prices here if game balancing changes –
+// name and price will be synchronized on the next startup without overwriting the recorded amount.
 const LOOT_CATALOG = [
   { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
   { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
@@ -53,22 +53,22 @@ const LOOT_CATALOG = [
   { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
 ];
 
-// Statischer Rang-Katalog für die Trials-Rangauswahl im Profil-Bereich.
-// key = Dateiname (ohne .webp) unter /images/ranks/. Passe Reihenfolge/Namen/Keys
-// gern an deine eigenen Logo-Dateien an - muss nicht 1:1 zum Spiel passen.
+// Static rank catalog for the Trials rank selection in the profile section.
+// key = filename (without .webp) in /images/ranks/. Feel free to adjust the
+// order, names, and keys to match your own logo files—they don't have to match the game 1:1.
 const RANK_CATALOG = [
   { key: 'rookie1',        name: 'Rookie I' },
   { key: 'rookie2',        name: 'Rookie II' },
   { key: 'rookie3',        name: 'Rookie III' },
-  { key: 'raider1',        name: 'Raider I' },
-  { key: 'raider2',        name: 'Raider II' },
-  { key: 'raider3',        name: 'Raider III' },
-  { key: 'survivor1',      name: 'Survivor I' },
-  { key: 'survivor2',      name: 'Survivor II' },
-  { key: 'survivor3',      name: 'Survivor III' },
-  { key: 'veteran1',       name: 'Veteran I' },
-  { key: 'veteran2',       name: 'Veteran II' },
-  { key: 'veteran3',       name: 'Veteran III' },
+  { key: 'tryhard1',       name: 'Tryhard I' },
+  { key: 'tryhard2',       name: 'Tryhard II' },
+  { key: 'tryhard3',       name: 'Tryhard III' },
+  { key: 'wildcard1',      name: 'Wildcard I' },
+  { key: 'wildcard2',      name: 'Wildcard II' },
+  { key: 'wildcard3',      name: 'Wildcard III' },
+  { key: 'daredevil1',     name: 'Daredevil I' },
+  { key: 'daredevil2',     name: 'Daredevil II' },
+  { key: 'daredevil3',     name: 'Daredevil III' },
   { key: 'hotshot',        name: 'Hotshot' },
   { key: 'cantinalegend',  name: 'Cantina Legend' }
 ];
