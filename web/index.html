@@ -28,6 +28,16 @@
     </div>
   </header>
 
+  <div class="profile-bar">
+    <div class="profile-card" id="rankCard">
+      <img class="profile-card-icon is-empty" id="rankCardIcon" alt="" onerror="this.classList.add('is-empty')">
+      <div class="profile-card-info">
+        <div class="profile-card-label" data-i18n="profileRankCardLabel"></div>
+        <div class="profile-card-value" id="rankCardValue">—</div>
+      </div>
+    </div>
+  </div>
+
   <nav class="tabs">
     <button class="active" data-view="entry" data-i18n="navEntry"></button>
     <button data-view="list" data-i18n="navList"></button>
@@ -289,6 +299,7 @@ function applyStaticTranslations(){
   $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();
   updateRankSelectPlaceholder();
+  updateRankCard();
 }
 
 function setLang(lang){
@@ -421,15 +432,37 @@ function populateRankSelect(){
   select.value = currentRank || '';
 }
 
+function rankName(key){
+  const found = rankCatalog.find(r => r.key === key);
+  return found ? found.name : null;
+}
+
 function updateRankLogo(){
   const img = $('#rankPreviewImg');
-  if(!img) return;
+  if(img){
+    if(currentRank){
+      img.classList.remove('is-empty');
+      img.src = rankImgSrc(currentRank);
+    } else {
+      img.classList.add('is-empty');
+      img.removeAttribute('src');
+    }
+  }
+  updateRankCard();
+}
+
+function updateRankCard(){
+  const icon = $('#rankCardIcon');
+  const value = $('#rankCardValue');
+  if(!icon || !value) return;
   if(currentRank){
-    img.classList.remove('is-empty');
-    img.src = rankImgSrc(currentRank);
+    icon.classList.remove('is-empty');
+    icon.src = rankImgSrc(currentRank);
+    value.textContent = rankName(currentRank) || currentRank;
   } else {
-    img.classList.add('is-empty');
-    img.removeAttribute('src');
+    icon.classList.add('is-empty');
+    icon.removeAttribute('src');
+    value.textContent = t('profileRankNone');
   }
 }
 

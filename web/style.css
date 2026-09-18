@@ -72,6 +72,31 @@ header{
 .stat-mini b.accent{color:var(--accent);}
 .stat-mini b.teal{color:var(--accent-2);}
 
+/* ---------- Profil-Leiste (zwischen Header und Tabs) ---------- */
+.profile-bar{
+  display:flex;justify-content:flex-end;align-items:stretch;
+  gap:12px;margin-bottom:24px;flex-wrap:wrap;
+}
+.profile-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:8px 14px 8px 8px;
+}
+.profile-card-icon{
+  width:36px;height:36px;object-fit:contain;flex-shrink:0;
+  border-radius:var(--radius);
+}
+.profile-card-icon.is-empty{visibility:hidden;}
+.profile-card-info{display:flex;flex-direction:column;gap:2px;}
+.profile-card-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.4px;
+  color:var(--text-faint);
+}
+.profile-card-value{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;
+  color:var(--text);line-height:1.1;
+}
+
 /* ---------- Settings-Seite ---------- */
 .settings-rank-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
 .rank-logo-preview{
