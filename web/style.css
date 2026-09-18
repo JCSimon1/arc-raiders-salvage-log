@@ -28,11 +28,11 @@ body{
 }
 ::selection{background:var(--accent-dim);color:#fff;}
 
-.shell{max-width:980px;margin:0 auto;padding:28px 20px 80px;}
+.shell{max-width:1240px;margin:0 auto;padding:28px 20px 80px;}
 
 header{
   display:flex;justify-content:space-between;align-items:flex-end;
-  padding-bottom:18px;margin-bottom:22px;
+  padding-bottom:18px;margin-bottom:14px;
   border-bottom:1px solid var(--border);
   gap:16px;flex-wrap:wrap;
 }
@@ -71,6 +71,50 @@ header{
 }
 .stat-mini b.accent{color:var(--accent);}
 .stat-mini b.teal{color:var(--accent-2);}
+
+.profile-bar{
+  display:flex;justify-content:flex-end;align-items:stretch;
+  gap:0;margin-bottom:24px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 16px;
+}
+.profile-card{
+  display:flex;align-items:center;gap:12px;
+  padding:0 14px;
+}
+.profile-card + .profile-card{border-left:1px solid var(--border-soft);}
+.profile-card-icon{
+  width:96px;height:96px;object-fit:contain;flex-shrink:0;
+  border-radius:var(--radius);
+  filter:drop-shadow(0 0 16px rgba(232,163,61,0.25));
+  animation: float 3s ease-in-out infinite;
+}
+.profile-card-icon.is-empty{visibility:hidden;}
+.profile-card-info{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
+.profile-card-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.4px;
+  color:var(--text-faint);
+}
+.profile-card-value{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;
+  color:var(--text);line-height:1.1;
+}
+
+.settings-rank-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.rank-logo-preview{
+  width:80px;height:80px;object-fit:contain;flex-shrink:0;
+  background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px;
+  filter:drop-shadow(0 0 8px rgba(232,163,61,0.25));
+}
+.rank-logo-preview.is-empty{opacity:.35;filter:none;}
+.settings-rank-row select{
+  background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;font-weight:500;
+  padding:9px 10px;border-radius:var(--radius);outline:none;cursor:pointer;
+  min-width:200px;
+}
+.settings-rank-row select:focus{border-color:var(--accent-2);}
 
 nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
 nav.tabs button{
@@ -326,6 +370,11 @@ td.actions button.del:hover{color:var(--negative);}
 @keyframes ticker-scroll{
   from{ transform:translateX(0); }
   to{ transform:translateX(-50%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
 .app-footer{

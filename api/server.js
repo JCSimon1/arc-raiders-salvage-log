@@ -31,10 +31,16 @@ const SCHEMA = `
     amount INTEGER NOT NULL DEFAULT 0,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
 `;
 
-// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
-// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
+// Static item catalog. Update prices here if game balancing changes –
+// name and price will be synchronized on the next startup without overwriting the recorded amount.
 const LOOT_CATALOG = [
   { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
   { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
@@ -45,6 +51,27 @@ const LOOT_CATALOG = [
   { key: 'rocketeerdriver',     name: 'Rocketeer Driver',     price: 3000 },
   { key: 'turbinecompressor',   name: 'Turbine Compressor',   price: 5000 },
   { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
+];
+
+// Static rank catalog for the Trials rank selection in the profile section.
+// key = filename (without .webp) in /images/ranks/. Feel free to adjust the
+// order, names, and keys to match your own logo files—they don't have to match the game 1:1.
+const RANK_CATALOG = [
+  { key: 'none',           name: 'None' },
+  { key: 'rookie1',        name: 'Rookie I' },
+  { key: 'rookie2',        name: 'Rookie II' },
+  { key: 'rookie3',        name: 'Rookie III' },
+  { key: 'tryhard1',       name: 'Tryhard I' },
+  { key: 'tryhard2',       name: 'Tryhard II' },
+  { key: 'tryhard3',       name: 'Tryhard III' },
+  { key: 'wildcard1',      name: 'Wildcard I' },
+  { key: 'wildcard2',      name: 'Wildcard II' },
+  { key: 'wildcard3',      name: 'Wildcard III' },
+  { key: 'daredevil1',     name: 'Daredevil I' },
+  { key: 'daredevil2',     name: 'Daredevil II' },
+  { key: 'daredevil3',     name: 'Daredevil III' },
+  { key: 'hotshot',        name: 'Hotshot' },
+  { key: 'cantinalegend',  name: 'Cantina Legend' }
 ];
 
 async function seedLootCatalog() {
@@ -202,6 +229,53 @@ app.put('/api/loot/:key', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Konnte Menge nicht aktualisieren.' });
+  }
+});
+
+// ---------- Settings (Profil, aktuell nur Trials-Rang) ----------
+
+async function getSetting(key) {
+  const { rows } = await pool.query('SELECT value FROM app_settings WHERE key = $1', [key]);
+  return rows.length ? rows[0].value : null;
+}
+
+async function setSetting(key, value) {
+  await pool.query(
+    `INSERT INTO app_settings (key, value, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (key) DO UPDATE
+     SET value = EXCLUDED.value, updated_at = now()`,
+    [key, value]
+  );
+}
+
+app.get('/api/settings', async (req, res) => {
+  try {
+    const rank = await getSetting('rank');
+    res.json({
+      rank: rank || null,
+      ranks: RANK_CATALOG
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Einstellungen nicht laden.' });
+  }
+});
+
+app.put('/api/settings/rank', async (req, res) => {
+  const { rank } = req.body;
+  if (rank !== null && rank !== '' && typeof rank !== 'string') {
+    return res.status(400).json({ error: 'Ungültiger Rang.' });
+  }
+  if (rank && !RANK_CATALOG.some(r => r.key === rank)) {
+    return res.status(400).json({ error: 'Unbekannter Rang.' });
+  }
+  try {
+    await setSetting('rank', rank || '');
+    res.json({ rank: rank || null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Rang nicht speichern.' });
   }
 });
 

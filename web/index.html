@@ -20,10 +20,6 @@
       <div class="brand-tag"><span class="status-dot" id="statusDot"></span><span data-i18n="brandTag"></span></div>
     </div>
     <div class="header-right">
-      <div class="lang-toggle">
-        <button id="langDE" title="Deutsch">DE</button>
-        <button id="langEN" title="English">EN</button>
-      </div>
       <div class="header-stats">
         <div class="stat-mini"><span data-i18n="headerRoundsLabel"></span><b id="runCountVal">0</b></div>
         <div class="stat-mini"><span data-i18n="headerMoneyLabel"></span><b id="totalMoneyVal" class="accent">0</b></div>
@@ -32,13 +28,25 @@
     </div>
   </header>
 
+  <div class="profile-bar">
+    <div class="profile-card" id="rankCard">
+      <div class="profile-card-info">
+        <div class="profile-card-label" data-i18n="profileRankCardLabel"></div>
+        <div class="profile-card-value" id="rankCardValue">—</div>
+      </div>
+      <img class="profile-card-icon is-empty" id="rankCardIcon" alt="" onerror="this.classList.add('is-empty')">
+    </div>
+  </div>
+
   <nav class="tabs">
     <button class="active" data-view="entry" data-i18n="navEntry"></button>
     <button data-view="list" data-i18n="navList"></button>
     <button data-view="analysis" data-i18n="navAnalysis"></button>
     <button data-view="distribution" data-i18n="navDistribution"></button>
     <button data-view="loot" data-i18n="navLoot"></button>
+    <button data-view="settings" data-i18n="navSettings"></button>
   </nav>
+
 
   <div class="view active" id="view-entry">
     <div class="panel">
@@ -193,6 +201,23 @@
     </div>
   </div>
 
+  <div class="view" id="view-settings">
+    <div class="panel">
+      <h2 class="panel-title" data-i18n="settingsLanguageTitle"></h2>
+      <div class="lang-toggle">
+        <button id="langDE" title="Deutsch">DE</button>
+        <button id="langEN" title="English">EN</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title" data-i18n="settingsRankTitle"></h2>
+      <div class="settings-rank-row">
+        <img class="rank-logo-preview is-empty" id="rankPreviewImg" alt="" onerror="this.classList.add('is-empty')">
+        <select id="rankSelect"></select>
+      </div>
+    </div>
+  </div>
+
   <div class="ticker-wrap">
     <div class="ticker-label" data-i18n="tickerLabel"></div>
       <div class="ticker-viewport">
@@ -206,11 +231,14 @@
 <script>
 const API = '/api/rounds';
 const LOOT_API = '/api/loot';
+const SETTINGS_API = '/api/settings';
 let rounds = [];
 let loot = [];
 let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
+let rankCatalog = [];
+let currentRank = null;
 
 const $ = sel => document.querySelector(sel);
 const COMPANY_LOGOS = [
@@ -270,6 +298,8 @@ function applyStaticTranslations(){
   $('#entryPanelTitle').textContent = editingId ? t('editTitle') : t('entryTitle');
   $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();
+  updateRankSelectPlaceholder();
+  updateRankCard();
 }
 
 function setLang(lang){
@@ -367,6 +397,95 @@ async function saveLootAmount(key, amount){
   if(!res.ok) throw new Error('loot save failed');
   return res.json();
 }
+
+// ---------- Settings / Profil (Rang) ----------
+function rankImgSrc(key){ return '/images/ranks/' + key + '.webp'; }
+
+async function loadSettings(){
+  const res = await fetch(SETTINGS_API);
+  if(!res.ok) throw new Error('settings load failed');
+  const data = await res.json();
+  rankCatalog = data.ranks || [];
+  currentRank = data.rank || null;
+}
+
+async function saveRank(rank){
+  const res = await fetch(SETTINGS_API + '/rank', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rank: rank || null })
+  });
+  if(!res.ok) throw new Error('rank save failed');
+  return res.json();
+}
+
+function updateRankSelectPlaceholder(){
+  const placeholderOpt = $('#rankSelect') && $('#rankSelect').querySelector('option[value=""]');
+  if(placeholderOpt) placeholderOpt.textContent = t('profileRankPlaceholder');
+}
+
+function populateRankSelect(){
+  const select = $('#rankSelect');
+  if(!select) return;
+  select.innerHTML = `<option value="">${t('profileRankPlaceholder')}</option>` +
+    rankCatalog.map(r => `<option value="${escapeHTML(r.key)}">${escapeHTML(r.name)}</option>`).join('');
+  select.value = currentRank || '';
+}
+
+function rankName(key){
+  const found = rankCatalog.find(r => r.key === key);
+  return found ? found.name : null;
+}
+
+function updateRankLogo(){
+  const img = $('#rankPreviewImg');
+  if(img){
+    if(currentRank){
+      img.classList.remove('is-empty');
+      img.src = rankImgSrc(currentRank);
+    } else {
+      img.classList.add('is-empty');
+      img.removeAttribute('src');
+    }
+  }
+  updateRankCard();
+}
+
+function updateRankCard(){
+  const icon = $('#rankCardIcon');
+  const value = $('#rankCardValue');
+  if(!icon || !value) return;
+  if(currentRank){
+    icon.classList.remove('is-empty');
+    icon.src = rankImgSrc(currentRank);
+    value.textContent = rankName(currentRank) || currentRank;
+  } else {
+    icon.classList.add('is-empty');
+    icon.removeAttribute('src');
+    value.textContent = t('profileRankNone');
+  }
+}
+
+function renderProfile(){
+  populateRankSelect();
+  updateRankLogo();
+}
+
+$('#rankSelect') && $('#rankSelect').addEventListener('change', async e=>{
+  const newRank = e.target.value || null;
+  const previous = currentRank;
+  currentRank = newRank;
+  updateRankLogo();
+  try{
+    await saveRank(newRank);
+    setStatus('ok');
+  }catch(err){
+    currentRank = previous;
+    populateRankSelect();
+    updateRankLogo();
+    setStatus('err');
+  }
+});
 
 // ---------- Tabs ----------
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
@@ -1060,6 +1179,13 @@ function refreshAll(){
   }catch(err){
     setStatus('err');
   }
+  try{
+    await loadSettings();
+  }catch(err){
+    rankCatalog = [];
+    currentRank = null;
+  }
+  renderProfile();
   refreshAll();
 })();
 </script>
