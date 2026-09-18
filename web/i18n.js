@@ -1,7 +1,7 @@
 const translations = {
   de: {
     brandTag: 'RUNDENTRACKER',
-    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung', navLoot: 'Loot',
+    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung', navLoot: 'Loot', navSettings: 'Profil',
     runCountLabel: 'RUNDEN GESAMT',
     headerRoundsLabel: 'RUNDEN', headerMoneyLabel: '$ GESAMT', headerXPLabel: 'XP GESAMT',
     entryTitle: 'Neue Runde eintragen',
@@ -43,13 +43,12 @@ const translations = {
     lootTotalLabel: 'GESAMTWERT STASH',
     lootSaveError: 'Fehler beim Speichern der Menge — Server erreichbar?',
     profileRankPlaceholder: 'Rang wählen…',
-    profileIconTitle: 'Profil & Einstellungen',
     settingsLanguageTitle: 'Sprache',
     settingsRankTitle: 'Trials-Rang'
   },
   en: {
     brandTag: 'RUN TRACKER',
-    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution', navLoot: 'Loot',
+    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution', navLoot: 'Loot', navSettings: 'Profile',
     runCountLabel: 'TOTAL RUNS',
     headerRoundsLabel: 'RUNS', headerMoneyLabel: 'TOTAL $', headerXPLabel: 'TOTAL XP',
     entryTitle: 'Log a new run',
@@ -91,7 +90,6 @@ const translations = {
     lootTotalLabel: 'TOTAL STASH VALUE',
     lootSaveError: 'Failed to save amount — is the server reachable?',
     profileRankPlaceholder: 'Select rank…',
-    profileIconTitle: 'Profile & Settings',
     settingsLanguageTitle: 'Language',
     settingsRankTitle: 'Trials Rank'
   }

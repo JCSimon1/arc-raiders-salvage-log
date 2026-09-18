@@ -25,13 +25,6 @@
         <div class="stat-mini"><span data-i18n="headerMoneyLabel"></span><b id="totalMoneyVal" class="accent">0</b></div>
         <div class="stat-mini"><span data-i18n="headerXPLabel"></span><b id="totalXPVal" class="teal">0</b></div>
       </div>
-      <button class="profile-icon-btn" id="profileIconBtn" type="button">
-        <img class="rank-logo-lg is-empty" id="profileIconImg" alt="" onerror="this.classList.add('is-empty')">
-        <svg class="profile-icon-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.4"/>
-          <path d="M4.5 20c1.6-4.3 4.4-6.5 7.5-6.5s5.9 2.2 7.5 6.5" stroke-linecap="round"/>
-        </svg>
-      </button>
     </div>
   </header>
 
@@ -41,7 +34,9 @@
     <button data-view="analysis" data-i18n="navAnalysis"></button>
     <button data-view="distribution" data-i18n="navDistribution"></button>
     <button data-view="loot" data-i18n="navLoot"></button>
+    <button data-view="settings" data-i18n="navSettings"></button>
   </nav>
+
 
   <div class="view active" id="view-entry">
     <div class="panel">
@@ -294,7 +289,6 @@ function applyStaticTranslations(){
   $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();
   updateRankSelectPlaceholder();
-  $('#profileIconBtn').title = t('profileIconTitle');
 }
 
 function setLang(lang){
@@ -428,30 +422,21 @@ function populateRankSelect(){
 }
 
 function updateRankLogo(){
-  [$('#profileIconImg'), $('#rankPreviewImg')].forEach(img=>{
-    if(!img) return;
-    if(currentRank){
-      img.classList.remove('is-empty');
-      img.src = rankImgSrc(currentRank);
-    } else {
-      img.classList.add('is-empty');
-      img.removeAttribute('src');
-    }
-  });
+  const img = $('#rankPreviewImg');
+  if(!img) return;
+  if(currentRank){
+    img.classList.remove('is-empty');
+    img.src = rankImgSrc(currentRank);
+  } else {
+    img.classList.add('is-empty');
+    img.removeAttribute('src');
+  }
 }
 
 function renderProfile(){
   populateRankSelect();
   updateRankLogo();
 }
-
-function showSettingsView(){
-  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  $('#view-settings').classList.add('active');
-}
-
-$('#profileIconBtn').addEventListener('click', showSettingsView);
 
 $('#rankSelect') && $('#rankSelect').addEventListener('change', async e=>{
   const newRank = e.target.value || null;
