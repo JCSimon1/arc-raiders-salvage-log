@@ -42,8 +42,10 @@ const translations = {
     thItem: 'Item', thPrice: 'Preis', thAmount: 'Menge', thSum: 'Summe',
     lootTotalLabel: 'GESAMTWERT STASH',
     lootSaveError: 'Fehler beim Speichern der Menge — Server erreichbar?',
-    profileRankLabel: 'RANG',
-    profileRankPlaceholder: 'Rang wählen…'
+    profileRankPlaceholder: 'Rang wählen…',
+    profileIconTitle: 'Profil & Einstellungen',
+    settingsLanguageTitle: 'Sprache',
+    settingsRankTitle: 'Trials-Rang'
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -88,7 +90,9 @@ const translations = {
     thItem: 'Item', thPrice: 'Price', thAmount: 'Amount', thSum: 'Sum',
     lootTotalLabel: 'TOTAL STASH VALUE',
     lootSaveError: 'Failed to save amount — is the server reachable?',
-    profileRankLabel: 'RANK',
-    profileRankPlaceholder: 'Select rank…'
+    profileRankPlaceholder: 'Select rank…',
+    profileIconTitle: 'Profile & Settings',
+    settingsLanguageTitle: 'Language',
+    settingsRankTitle: 'Trials Rank'
   }
 };
