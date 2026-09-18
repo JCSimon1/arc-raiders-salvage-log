@@ -32,6 +32,14 @@
     </div>
   </header>
 
+  <div class="profile-bar">
+    <div class="profile-rank">
+      <img class="rank-logo" id="rankLogo" src="" alt="" onerror="this.classList.add('is-empty')">
+      <span class="profile-rank-label" data-i18n="profileRankLabel"></span>
+      <select id="rankSelect"></select>
+    </div>
+  </div>
+
   <nav class="tabs">
     <button class="active" data-view="entry" data-i18n="navEntry"></button>
     <button data-view="list" data-i18n="navList"></button>
@@ -206,11 +214,14 @@
 <script>
 const API = '/api/rounds';
 const LOOT_API = '/api/loot';
+const SETTINGS_API = '/api/settings';
 let rounds = [];
 let loot = [];
 let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
+let rankCatalog = [];
+let currentRank = null;
 
 const $ = sel => document.querySelector(sel);
 const COMPANY_LOGOS = [
@@ -270,6 +281,7 @@ function applyStaticTranslations(){
   $('#entryPanelTitle').textContent = editingId ? t('editTitle') : t('entryTitle');
   $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();
+  updateRankSelectPlaceholder();
 }
 
 function setLang(lang){
@@ -367,6 +379,73 @@ async function saveLootAmount(key, amount){
   if(!res.ok) throw new Error('loot save failed');
   return res.json();
 }
+
+// ---------- Settings / Profil (Rang) ----------
+function rankImgSrc(key){ return '/images/ranks/' + key + '.webp'; }
+
+async function loadSettings(){
+  const res = await fetch(SETTINGS_API);
+  if(!res.ok) throw new Error('settings load failed');
+  const data = await res.json();
+  rankCatalog = data.ranks || [];
+  currentRank = data.rank || null;
+}
+
+async function saveRank(rank){
+  const res = await fetch(SETTINGS_API + '/rank', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rank: rank || null })
+  });
+  if(!res.ok) throw new Error('rank save failed');
+  return res.json();
+}
+
+function updateRankSelectPlaceholder(){
+  const placeholderOpt = $('#rankSelect') && $('#rankSelect').querySelector('option[value=""]');
+  if(placeholderOpt) placeholderOpt.textContent = t('profileRankPlaceholder');
+}
+
+function populateRankSelect(){
+  const select = $('#rankSelect');
+  if(!select) return;
+  select.innerHTML = `<option value="">${t('profileRankPlaceholder')}</option>` +
+    rankCatalog.map(r => `<option value="${escapeHTML(r.key)}">${escapeHTML(r.name)}</option>`).join('');
+  select.value = currentRank || '';
+}
+
+function updateRankLogo(){
+  const img = $('#rankLogo');
+  if(!img) return;
+  if(currentRank){
+    img.classList.remove('is-empty');
+    img.src = rankImgSrc(currentRank);
+  } else {
+    img.classList.add('is-empty');
+    img.removeAttribute('src');
+  }
+}
+
+function renderProfile(){
+  populateRankSelect();
+  updateRankLogo();
+}
+
+$('#rankSelect') && $('#rankSelect').addEventListener('change', async e=>{
+  const newRank = e.target.value || null;
+  const previous = currentRank;
+  currentRank = newRank;
+  updateRankLogo();
+  try{
+    await saveRank(newRank);
+    setStatus('ok');
+  }catch(err){
+    currentRank = previous;
+    populateRankSelect();
+    updateRankLogo();
+    setStatus('err');
+  }
+});
 
 // ---------- Tabs ----------
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
@@ -1060,6 +1139,13 @@ function refreshAll(){
   }catch(err){
     setStatus('err');
   }
+  try{
+    await loadSettings();
+  }catch(err){
+    rankCatalog = [];
+    currentRank = null;
+  }
+  renderProfile();
   refreshAll();
 })();
 </script>

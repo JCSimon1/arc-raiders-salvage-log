@@ -31,6 +31,12 @@ const SCHEMA = `
     amount INTEGER NOT NULL DEFAULT 0,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
 `;
 
 // Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
@@ -45,6 +51,26 @@ const LOOT_CATALOG = [
   { key: 'rocketeerdriver',     name: 'Rocketeer Driver',     price: 3000 },
   { key: 'turbinecompressor',   name: 'Turbine Compressor',   price: 5000 },
   { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
+];
+
+// Statischer Rang-Katalog für die Trials-Rangauswahl im Profil-Bereich.
+// key = Dateiname (ohne .webp) unter /images/ranks/. Passe Reihenfolge/Namen/Keys
+// gern an deine eigenen Logo-Dateien an - muss nicht 1:1 zum Spiel passen.
+const RANK_CATALOG = [
+  { key: 'rookie1',        name: 'Rookie I' },
+  { key: 'rookie2',        name: 'Rookie II' },
+  { key: 'rookie3',        name: 'Rookie III' },
+  { key: 'raider1',        name: 'Raider I' },
+  { key: 'raider2',        name: 'Raider II' },
+  { key: 'raider3',        name: 'Raider III' },
+  { key: 'survivor1',      name: 'Survivor I' },
+  { key: 'survivor2',      name: 'Survivor II' },
+  { key: 'survivor3',      name: 'Survivor III' },
+  { key: 'veteran1',       name: 'Veteran I' },
+  { key: 'veteran2',       name: 'Veteran II' },
+  { key: 'veteran3',       name: 'Veteran III' },
+  { key: 'hotshot',        name: 'Hotshot' },
+  { key: 'cantinalegend',  name: 'Cantina Legend' }
 ];
 
 async function seedLootCatalog() {
@@ -202,6 +228,53 @@ app.put('/api/loot/:key', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Konnte Menge nicht aktualisieren.' });
+  }
+});
+
+// ---------- Settings (Profil, aktuell nur Trials-Rang) ----------
+
+async function getSetting(key) {
+  const { rows } = await pool.query('SELECT value FROM app_settings WHERE key = $1', [key]);
+  return rows.length ? rows[0].value : null;
+}
+
+async function setSetting(key, value) {
+  await pool.query(
+    `INSERT INTO app_settings (key, value, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (key) DO UPDATE
+     SET value = EXCLUDED.value, updated_at = now()`,
+    [key, value]
+  );
+}
+
+app.get('/api/settings', async (req, res) => {
+  try {
+    const rank = await getSetting('rank');
+    res.json({
+      rank: rank || null,
+      ranks: RANK_CATALOG
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Einstellungen nicht laden.' });
+  }
+});
+
+app.put('/api/settings/rank', async (req, res) => {
+  const { rank } = req.body;
+  if (rank !== null && rank !== '' && typeof rank !== 'string') {
+    return res.status(400).json({ error: 'Ungültiger Rang.' });
+  }
+  if (rank && !RANK_CATALOG.some(r => r.key === rank)) {
+    return res.status(400).json({ error: 'Unbekannter Rang.' });
+  }
+  try {
+    await setSetting('rank', rank || '');
+    res.json({ rank: rank || null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Rang nicht speichern.' });
   }
 });
 

@@ -28,11 +28,11 @@ body{
 }
 ::selection{background:var(--accent-dim);color:#fff;}
 
-.shell{max-width:980px;margin:0 auto;padding:28px 20px 80px;}
+.shell{max-width:1240px;margin:0 auto;padding:28px 20px 80px;}
 
 header{
   display:flex;justify-content:space-between;align-items:flex-end;
-  padding-bottom:18px;margin-bottom:22px;
+  padding-bottom:18px;margin-bottom:14px;
   border-bottom:1px solid var(--border);
   gap:16px;flex-wrap:wrap;
 }
@@ -71,6 +71,33 @@ header{
 }
 .stat-mini b.accent{color:var(--accent);}
 .stat-mini b.teal{color:var(--accent-2);}
+
+/* ---------- Profil-Leiste (oben rechts) ---------- */
+.profile-bar{
+  display:flex;justify-content:flex-end;align-items:center;
+  gap:14px;margin-bottom:24px;flex-wrap:wrap;
+}
+.profile-rank{
+  display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:6px 10px 6px 8px;
+}
+.rank-logo{
+  width:30px;height:30px;object-fit:contain;flex-shrink:0;
+  filter:drop-shadow(0 0 6px rgba(232,163,61,0.25));
+}
+.rank-logo.is-empty{visibility:hidden;}
+.profile-rank select{
+  background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:6px 8px;border-radius:var(--radius);outline:none;cursor:pointer;
+  max-width:160px;
+}
+.profile-rank select:focus{border-color:var(--accent-2);}
+.profile-rank-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.4px;
+  color:var(--text-faint);white-space:nowrap;
+}
 
 nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
 nav.tabs button{
@@ -280,6 +307,7 @@ td.actions button.del:hover{color:var(--negative);}
   header{flex-direction:column;align-items:flex-start;gap:10px;}
   .header-right{width:100%;justify-content:space-between;}
   .header-stats{gap:14px;}
+  .profile-bar{justify-content:flex-start;}
 }
 
 .ticker-wrap{
