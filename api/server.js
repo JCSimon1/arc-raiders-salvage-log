@@ -57,6 +57,7 @@ const LOOT_CATALOG = [
 // key = filename (without .webp) in /images/ranks/. Feel free to adjust the
 // order, names, and keys to match your own logo files—they don't have to match the game 1:1.
 const RANK_CATALOG = [
+  { key: 'none',           name: 'None' },
   { key: 'rookie1',        name: 'Rookie I' },
   { key: 'rookie2',        name: 'Rookie II' },
   { key: 'rookie3',        name: 'Rookie III' },
