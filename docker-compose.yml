@@ -39,6 +39,8 @@ services:
     init: true
     environment:
       DATABASE_URL: postgres://arclog:${POSTGRES_PASSWORD:-arclog}@db:5432/arclog
+      STEAM_API_KEY: ${STEAM_API_KEY:-}
+      STEAM_ID: ${STEAM_ID:-}
     networks: [backend, frontend]
     depends_on:
       db:

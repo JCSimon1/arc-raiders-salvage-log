@@ -39,8 +39,8 @@ const SCHEMA = `
   );
 `;
 
-// Static item catalog. Update prices here if game balancing changes –
-// name and price will be synchronized on the next startup without overwriting the recorded amount.
+// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
+// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
 const LOOT_CATALOG = [
   { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
   { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
@@ -53,9 +53,9 @@ const LOOT_CATALOG = [
   { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
 ];
 
-// Static rank catalog for the Trials rank selection in the profile section.
-// key = filename (without .webp) in /images/ranks/. Feel free to adjust the
-// order, names, and keys to match your own logo files—they don't have to match the game 1:1.
+// Statischer Rang-Katalog für die Trials-Rangauswahl im Profil-Bereich.
+// key = Dateiname (ohne .webp) unter /images/ranks/. Passe Reihenfolge/Namen/Keys
+// gern an deine eigenen Logo-Dateien an - muss nicht 1:1 zum Spiel passen.
 const RANK_CATALOG = [
   { key: 'none',           name: 'None' },
   { key: 'rookie1',        name: 'Rookie I' },
@@ -276,6 +276,64 @@ app.put('/api/settings/rank', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Konnte Rang nicht speichern.' });
+  }
+});
+
+// ---------- Steam-Profil ----------
+// Nur aktiv, wenn STEAM_API_KEY und STEAM_ID gesetzt sind. Der Key verlässt
+// niemals den Server - das Frontend bekommt nur das aufbereitete Ergebnis.
+
+const STEAM_API_KEY = process.env.STEAM_API_KEY || '';
+const STEAM_ID = process.env.STEAM_ID || '';
+const STEAM_CACHE_MS = 5 * 60 * 1000;
+let steamProfileCache = { data: null, ts: 0 };
+
+function steamConfigured() {
+  return Boolean(STEAM_API_KEY && STEAM_ID);
+}
+
+function personaStateLabel(state) {
+  const map = {
+    0: 'offline',
+    1: 'online',
+    2: 'busy',
+    3: 'away',
+    4: 'snooze',
+    5: 'looking_to_trade',
+    6: 'looking_to_play'
+  };
+  return map[state] ?? 'offline';
+}
+
+app.get('/api/steam/profile', async (req, res) => {
+  if (!steamConfigured()) {
+    return res.json({ configured: false });
+  }
+  try {
+    const now = Date.now();
+    if (steamProfileCache.data && (now - steamProfileCache.ts) < STEAM_CACHE_MS) {
+      return res.json(steamProfileCache.data);
+    }
+    const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${encodeURIComponent(STEAM_API_KEY)}&steamids=${encodeURIComponent(STEAM_ID)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`Steam API Status ${r.status}`);
+    const data = await r.json();
+    const player = data && data.response && data.response.players && data.response.players[0];
+    if (!player) throw new Error('Kein Steam-Profil in der Antwort gefunden.');
+
+    const result = {
+      configured: true,
+      name: player.personaname,
+      avatar: player.avatarfull,
+      profileUrl: player.profileurl,
+      status: personaStateLabel(player.personastate),
+      inGame: Boolean(player.gameid)
+    };
+    steamProfileCache = { data: result, ts: now };
+    res.json(result);
+  } catch (err) {
+    console.error('Steam-Profil-Fehler:', err.message);
+    res.status(502).json({ configured: true, error: 'Steam-Profil konnte nicht geladen werden.' });
   }
 });
 

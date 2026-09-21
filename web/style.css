@@ -72,6 +72,7 @@ header{
 .stat-mini b.accent{color:var(--accent);}
 .stat-mini b.teal{color:var(--accent-2);}
 
+/* ---------- Profil-Leiste (zwischen Header und Tabs) ---------- */
 .profile-bar{
   display:flex;justify-content:flex-end;align-items:stretch;
   gap:0;margin-bottom:24px;flex-wrap:wrap;
@@ -84,9 +85,9 @@ header{
 }
 .profile-card + .profile-card{border-left:1px solid var(--border-soft);}
 .profile-card-icon{
-  width:96px;height:96px;object-fit:contain;flex-shrink:0;
+  width:36px;height:36px;object-fit:contain;flex-shrink:0;
   border-radius:var(--radius);
-  filter:drop-shadow(0 0 16px rgba(232,163,61,0.25));
+  filter:drop-shadow(0 0 8px rgba(232,163,61,0.25));
   animation: float 3s ease-in-out infinite;
 }
 .profile-card-icon.is-empty{visibility:hidden;}
@@ -100,6 +101,29 @@ header{
   color:var(--text);line-height:1.1;
 }
 
+.steam-label{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+.steam-icon{
+  width:13px;height:13px;color:var(--accent-2);flex-shrink:0;
+  filter:drop-shadow(0 0 6px rgba(92,139,143,0.55));
+}
+.profile-card-avatar{
+  width:36px;height:36px;object-fit:cover;flex-shrink:0;
+  border-radius:50%;
+  filter:drop-shadow(0 0 6px rgba(92,139,143,0.35));
+}
+.profile-card-avatar.is-empty{visibility:hidden;}
+.profile-card-status{
+  display:flex;align-items:center;gap:6px;justify-content:flex-end;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);
+}
+.profile-card-status .status-dot{margin-right:0;}
+.status-dot.steam-online,.status-dot.steam-looking_to_play{background:var(--positive);}
+.status-dot.steam-busy{background:var(--negative);}
+.status-dot.steam-away,.status-dot.steam-snooze{background:var(--accent);}
+.status-dot.steam-looking_to_trade{background:var(--accent-2);}
+.status-dot.steam-offline{background:var(--text-faint);}
+
+/* ---------- Settings-Seite ---------- */
 .settings-rank-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
 .rank-logo-preview{
   width:80px;height:80px;object-fit:contain;flex-shrink:0;
@@ -372,11 +396,6 @@ td.actions button.del:hover{color:var(--negative);}
   to{ transform:translateX(-50%); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
 .app-footer{
 margin-top:32px;
 text-align:center;
@@ -420,3 +439,8 @@ input.loot-amount-input{
   transition:border-color .15s ease;
 }
 input.loot-amount-input:focus{border-color:var(--accent-2);}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}

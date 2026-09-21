@@ -36,6 +36,25 @@
       </div>
       <img class="profile-card-icon is-empty" id="rankCardIcon" alt="" onerror="this.classList.add('is-empty')">
     </div>
+    <div class="profile-card hidden" id="steamCard">
+      <div class="profile-card-info">
+        <div class="profile-card-label steam-label">
+          <svg class="steam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <rect x="3" y="8" width="18" height="9" rx="4"/>
+            <path d="M8 11v3M6.5 12.5h3" stroke-linecap="round"/>
+            <circle cx="16" cy="11.5" r="0.9" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="13.5" r="0.9" fill="currentColor" stroke="none"/>
+          </svg>
+          <span data-i18n="profileSteamCardLabel"></span>
+        </div>
+        <div class="profile-card-value" id="steamName">—</div>
+        <div class="profile-card-status" id="steamStatusRow">
+          <span class="status-dot" id="steamStatusDot"></span>
+          <span id="steamStatusText"></span>
+        </div>
+      </div>
+      <img class="profile-card-avatar is-empty" id="steamAvatar" alt="" onerror="this.classList.add('is-empty')">
+    </div>
   </div>
 
   <nav class="tabs">
@@ -308,6 +327,7 @@ function setLang(lang){
   applyStaticTranslations();
   populateFilterOptions();
   refreshAll();
+  if(lastSteamData) showSteamCard(lastSteamData);
 }
 $('#langDE').addEventListener('click', ()=>setLang('de'));
 $('#langEN').addEventListener('click', ()=>setLang('en'));
@@ -486,6 +506,62 @@ $('#rankSelect') && $('#rankSelect').addEventListener('change', async e=>{
     setStatus('err');
   }
 });
+
+// ---------- Steam-Profil ----------
+const STEAM_STATUS_CLASSES = [
+  'steam-online','steam-busy','steam-away','steam-snooze',
+  'steam-looking_to_trade','steam-looking_to_play','steam-offline'
+];
+
+let lastSteamData = null;
+
+function hideSteamCard(){
+  const card = $('#steamCard');
+  if(card) card.classList.add('hidden');
+}
+
+function showSteamCard(data){
+  lastSteamData = data;
+  const card = $('#steamCard');
+  if(!card) return;
+  card.classList.remove('hidden');
+
+  $('#steamName').textContent = data.name || '—';
+
+  const avatar = $('#steamAvatar');
+  if(avatar){
+    if(data.avatar){
+      avatar.src = data.avatar;
+      avatar.classList.remove('is-empty');
+    } else {
+      avatar.classList.add('is-empty');
+      avatar.removeAttribute('src');
+    }
+  }
+
+  const dot = $('#steamStatusDot');
+  const text = $('#steamStatusText');
+  const statusRow = $('#steamStatusRow');
+  const status = data.status || 'offline';
+  if(dot && text && statusRow){
+    STEAM_STATUS_CLASSES.forEach(c=>dot.classList.remove(c));
+    dot.classList.add('steam-' + status);
+    text.textContent = t('steamStatus_' + status) || status;
+    statusRow.classList.remove('hidden');
+  }
+}
+
+async function loadSteamProfile(){
+  try{
+    const res = await fetch('/api/steam/profile');
+    if(!res.ok){ hideSteamCard(); return; }
+    const data = await res.json();
+    if(!data.configured || data.error){ hideSteamCard(); return; }
+    showSteamCard(data);
+  }catch(err){
+    hideSteamCard();
+  }
+}
 
 // ---------- Tabs ----------
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
@@ -1187,6 +1263,7 @@ function refreshAll(){
   }
   renderProfile();
   refreshAll();
+  loadSteamProfile();
 })();
 </script>
 </body>
