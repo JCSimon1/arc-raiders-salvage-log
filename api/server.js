@@ -1,349 +1,446 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
+:root{
+  --bg:#14171a;
+  --panel:#1c2124;
+  --panel-alt:#232a2e;
+  --border:#333c41;
+  --border-soft:#2a3236;
+  --accent:#e8a33d;
+  --accent-dim:#8a6428;
+  --accent-2:#5c8b8f;
+  --text:#e9e5dc;
+  --text-muted:#8b949a;
+  --text-faint:#5c6569;
+  --positive:#8faa66;
+  --negative:#c1503f;
+  --radius:3px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(232,163,61,0.05), transparent),
+    radial-gradient(900px 500px at 100% 0%, rgba(92,139,143,0.06), transparent),
+    var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-dim);color:#fff;}
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+.shell{max-width:1240px;margin:0 auto;padding:28px 20px 80px;}
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding-bottom:18px;margin-bottom:14px;
+  border-bottom:1px solid var(--border);
+  gap:16px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:12px;}
+.brand-mark{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;
+  letter-spacing:0.5px;color:var(--text);line-height:1;
+}
+.brand-mark span{color:var(--accent);}
+.brand-tag{font-size:12.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-faint);margin-right:6px;}
+.status-dot.ok{background:var(--positive);}
+.status-dot.err{background:var(--negative);}
 
-const SCHEMA = `
-  CREATE TABLE IF NOT EXISTS rounds (
-    id SERIAL PRIMARY KEY,
-    round_number INTEGER NOT NULL,
-    round_date DATE NOT NULL,
-    round_time TIME NOT NULL,
-    map TEXT NOT NULL,
-    map_condition TEXT NOT NULL,
-    money INTEGER NOT NULL,
-    xp INTEGER NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-  );
+.header-right{display:flex;align-items:center;gap:22px;}
+.lang-toggle{display:flex;gap:6px;}
+.lang-toggle button{
+  background:var(--panel-alt);border:1px solid var(--border);
+  border-radius:var(--radius);cursor:pointer;
+  width:34px;height:26px;font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  opacity:.5;transition:opacity .15s ease, border-color .15s ease;
+  padding:0;
+}
+.lang-toggle button:hover{opacity:.8;}
+.lang-toggle button.active{opacity:1;border-color:var(--accent-dim);}
 
-  CREATE TABLE IF NOT EXISTS loot_items (
-    id SERIAL PRIMARY KEY,
-    item_key TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    price INTEGER NOT NULL,
-    amount INTEGER NOT NULL DEFAULT 0,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-  );
+.header-stats{display:flex;gap:20px;}
+.stat-mini{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);
+  text-align:right;letter-spacing:.2px;
+}
+.stat-mini b{
+  display:block;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:17px;color:var(--text);line-height:1.3;
+}
+.stat-mini b.accent{color:var(--accent);}
+.stat-mini b.teal{color:var(--accent-2);}
 
-  CREATE TABLE IF NOT EXISTS app_settings (
-    key TEXT PRIMARY KEY,
-    value TEXT,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-  );
-`;
-
-// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
-// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
-const LOOT_CATALOG = [
-  { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
-  { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
-  { key: 'assessormatrix',      name: 'Assessor Matrix',      price: 5000 },
-  { key: 'bastioncell',         name: 'Bastion Cell',         price: 3000 },
-  { key: 'bombadiercell',       name: 'Bombadier Cell',       price: 3000 },
-  { key: 'leaperpulseunit',     name: 'Leaper Pulse Unit',    price: 3000 },
-  { key: 'rocketeerdriver',     name: 'Rocketeer Driver',     price: 3000 },
-  { key: 'turbinecompressor',   name: 'Turbine Compressor',   price: 5000 },
-  { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
-];
-
-// Statischer Rang-Katalog für die Trials-Rangauswahl im Profil-Bereich.
-// key = Dateiname (ohne .webp) unter /images/ranks/. Passe Reihenfolge/Namen/Keys
-// gern an deine eigenen Logo-Dateien an - muss nicht 1:1 zum Spiel passen.
-const RANK_CATALOG = [
-  { key: 'none',           name: 'None' },
-  { key: 'rookie1',        name: 'Rookie I' },
-  { key: 'rookie2',        name: 'Rookie II' },
-  { key: 'rookie3',        name: 'Rookie III' },
-  { key: 'tryhard1',       name: 'Tryhard I' },
-  { key: 'tryhard2',       name: 'Tryhard II' },
-  { key: 'tryhard3',       name: 'Tryhard III' },
-  { key: 'wildcard1',      name: 'Wildcard I' },
-  { key: 'wildcard2',      name: 'Wildcard II' },
-  { key: 'wildcard3',      name: 'Wildcard III' },
-  { key: 'daredevil1',     name: 'Daredevil I' },
-  { key: 'daredevil2',     name: 'Daredevil II' },
-  { key: 'daredevil3',     name: 'Daredevil III' },
-  { key: 'hotshot',        name: 'Hotshot' },
-  { key: 'cantinalegend',  name: 'Cantina Legend' }
-];
-
-async function seedLootCatalog() {
-  for (const item of LOOT_CATALOG) {
-    await pool.query(
-      `INSERT INTO loot_items (item_key, name, price)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (item_key) DO UPDATE
-       SET name = EXCLUDED.name, price = EXCLUDED.price`,
-      [item.key, item.name, item.price]
-    );
-  }
+/* ---------- Profil-Leiste (zwischen Header und Tabs) ---------- */
+.profile-bar{
+  display:flex;justify-content:flex-end;align-items:stretch;
+  gap:0;margin-bottom:24px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 16px;
+}
+.profile-card{
+  display:flex;align-items:center;gap:12px;
+  padding:0 14px;
+}
+.profile-card + .profile-card{border-left:1px solid var(--border-soft);}
+.profile-card-icon{
+  width:56px;height:56px;object-fit:contain;flex-shrink:0;
+  border-radius:var(--radius);
+  filter:drop-shadow(0 0 8px rgba(232,163,61,0.5));
+  animation: float 3s ease-in-out infinite;
+}
+.profile-card-icon.is-empty{visibility:hidden;}
+.profile-card-info{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}
+.profile-card-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.4px;
+  color:var(--text-faint);
+}
+.profile-card-value{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;
+  color:var(--text);line-height:1.1;
 }
 
-async function initDb(retries = 20, delayMs = 1500) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      await pool.query(SCHEMA);
-      await seedLootCatalog();
-      console.log('Datenbank bereit.');
-      return;
-    } catch (err) {
-      console.log(`DB noch nicht bereit (Versuch ${attempt}/${retries}): ${err.message}`);
-      await new Promise(r => setTimeout(r, delayMs));
-    }
-  }
-  throw new Error('Konnte keine Verbindung zur Datenbank herstellen.');
+.steam-label{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+.steam-icon{
+  width:13px;height:13px;color:var(--accent-2);flex-shrink:0;
+  filter:drop-shadow(0 0 6px rgba(92,139,143,0.55));
+}
+.profile-card-avatar{
+  width:56px;height:56px;object-fit:cover;flex-shrink:0;
+  border-radius:50%;
+  filter:drop-shadow(0 0 8px rgba(232,163,61,0.5));
+}
+.profile-card-avatar.is-empty{visibility:hidden;}
+.profile-card-status{
+  display:flex;align-items:center;gap:6px;justify-content:flex-end;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);
+}
+.profile-card-status .status-dot{margin-right:0;}
+.status-dot.steam-online,.status-dot.steam-looking_to_play{background:var(--positive);}
+.status-dot.steam-busy{background:var(--negative);}
+.status-dot.steam-away,.status-dot.steam-snooze{background:var(--accent);}
+.status-dot.steam-looking_to_trade{background:var(--accent-2);}
+.status-dot.steam-offline{background:var(--text-faint);}
+
+/* ---------- Settings-Seite ---------- */
+.settings-rank-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.rank-logo-preview{
+  width:80px;height:80px;object-fit:contain;flex-shrink:0;
+  background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px;
+  filter:drop-shadow(0 0 8px rgba(232,163,61,0.25));
+}
+.rank-logo-preview.is-empty{opacity:.35;filter:none;}
+.settings-rank-row select{
+  background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;font-weight:500;
+  padding:9px 10px;border-radius:var(--radius);outline:none;cursor:pointer;
+  min-width:200px;
+}
+.settings-rank-row select:focus{border-color:var(--accent-2);}
+
+nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
+nav.tabs button{
+  background:none;border:none;color:var(--text-muted);
+  font-family:'IBM Plex Sans',sans-serif;font-size:14.5px;font-weight:500;
+  padding:10px 4px;margin-right:26px;cursor:pointer;
+  border-bottom:2px solid transparent;position:relative;top:1px;
+  transition:color .15s ease, border-color .15s ease;
+}
+nav.tabs button:hover{color:var(--text);}
+nav.tabs button.active{color:var(--text);border-bottom-color:var(--accent);}
+
+.view{display:none;}
+.view.active{display:block;}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+}
+.panel + .panel{margin-top:18px;}
+h2.panel-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:19px;
+  margin:0 0 16px;color:var(--text);letter-spacing:.2px;
 }
 
-function toApi(row) {
-  return {
-    id: row.id,
-    number: row.round_number,
-    date: row.round_date instanceof Date
-      ? row.round_date.toISOString().slice(0, 10)
-      : String(row.round_date),
-    time: String(row.round_time).slice(0, 5),
-    map: row.map,
-    condition: row.map_condition,
-    money: row.money,
-    xp: row.xp
-  };
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 16px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.span-2{grid-column:span 2;}
+.field label{font-size:12px;color:var(--text-muted);font-weight:500;}
+.field input, .field select{
+  background:var(--panel-alt);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13.5px;
+  padding:9px 10px;
+  border-radius:var(--radius);
+  outline:none;
+  transition:border-color .15s ease;
+  width:100%;
+}
+.field input::placeholder{color:var(--text-faint);font-family:'IBM Plex Sans',sans-serif;}
+.field input:focus, .field select:focus{border-color:var(--accent-2);}
+.form-actions{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin-top:4px;}
+.btn{
+  background:var(--accent);color:#1a1400;border:none;
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
+  padding:10px 18px;border-radius:var(--radius);cursor:pointer;
+  transition:filter .15s ease;
+}
+.btn:hover{filter:brightness(1.08);}
+.btn:disabled{opacity:.5;cursor:default;}
+.btn.ghost{
+  background:none;border:1px solid var(--border);color:var(--text-muted);font-weight:500;
+}
+.btn.ghost:hover{color:var(--text);border-color:var(--text-faint);}
+.hidden{display:none !important;}
+.form-msg{font-size:12.5px;font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .3s ease;}
+.form-msg.show{opacity:1;}
+.form-msg.ok{color:var(--positive);}
+.form-msg.err{color:var(--negative);}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;font-size:11px;font-weight:600;color:var(--text-faint);
+  padding:0 10px 10px;border-bottom:1px solid var(--border);
+  font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;
+}
+tbody td{padding:10px 10px;border-bottom:1px solid var(--border-soft);color:var(--text);font-family:'IBM Plex Mono',monospace;}
+tbody tr:hover{background:rgba(255,255,255,0.02);}
+tbody tr:last-child td{border-bottom:none;}
+td.num{text-align:right;}
+td.money{color:var(--positive);text-align:right;}
+td.xp{color:var(--accent-2);text-align:right;}
+td.actions{text-align:right;white-space:nowrap;}
+td.actions button{
+  background:none;border:none;color:var(--text-faint);cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:2px 6px;
+}
+td.actions button + button{margin-left:10px;}
+td.actions button:hover{color:var(--accent);}
+td.actions button.del:hover{color:var(--negative);}
+.empty-state{
+  text-align:center;padding:36px 20px;color:var(--text-faint);
+  font-family:'IBM Plex Mono',monospace;font-size:13px;
 }
 
-function toLootApi(row) {
-  return {
-    key: row.item_key,
-    name: row.name,
-    price: row.price,
-    amount: row.amount
-  };
+.cell-with-icon{display:flex;align-items:center;gap:8px;}
+  .map-thumb{
+    width:64px;height:30px;object-fit:cover;border-radius:6px;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+  .condition-thumb{
+    width:28px;height:28px;object-fit:cover;border-radius:50%;
+    border:1px solid var(--border-soft);flex-shrink:0;
+  }
+
+.filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-row select, .filter-row input{
+  background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius);
 }
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px;}
+.stat-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;
+}
+.stat-card .label{font-size:11.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
+.stat-card .value{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:26px;color:var(--text);}
+.stat-card .value.accent{color:var(--accent);}
+.stat-card .value.teal{color:var(--accent-2);}
 
-app.get('/api/rounds', async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      'SELECT * FROM rounds ORDER BY round_date DESC, round_time DESC, round_number DESC'
-    );
-    res.json(rows.map(toApi));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Runden nicht laden.' });
-  }
-});
+.breakdown-table td, .breakdown-table th{padding:9px 10px;}
+.breakdown-table td:first-child, .breakdown-table th:first-child{font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
 
-app.post('/api/rounds', async (req, res) => {
-  const { round_number, round_date, round_time, map, map_condition, money, xp } = req.body;
-  if (!round_date || !round_time || !map || !map_condition) {
-    return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
-  }
-  try {
-    const { rows } = await pool.query(
-      `INSERT INTO rounds (round_number, round_date, round_time, map, map_condition, money, xp)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp]
-    );
-    res.status(201).json(toApi(rows[0]));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Runde nicht speichern.' });
-  }
-});
-
-app.put('/api/rounds/:id', async (req, res) => {
-  const { round_number, round_date, round_time, map, map_condition, money, xp } = req.body;
-  if (!round_date || !round_time || !map || !map_condition) {
-    return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
-  }
-  try {
-    const { rows } = await pool.query(
-      `UPDATE rounds
-       SET round_number = $1,
-           round_date = $2,
-           round_time = $3,
-           map = $4,
-           map_condition = $5,
-           money = $6,
-           xp = $7
-       WHERE id = $8
-       RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp, req.params.id]
-    );
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Runde nicht gefunden.' });
-    }
-    res.json(toApi(rows[0]));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Runde nicht aktualisieren.' });
-  }
-});
-
-app.delete('/api/rounds/:id', async (req, res) => {
-  try {
-    await pool.query('DELETE FROM rounds WHERE id = $1', [req.params.id]);
-    res.status(204).end();
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Runde nicht löschen.' });
-  }
-});
-
-// ---------- Loot ----------
-
-app.get('/api/loot', async (req, res) => {
-  try {
-    const { rows } = await pool.query('SELECT * FROM loot_items ORDER BY price DESC, name ASC');
-    res.json(rows.map(toLootApi));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Loot-Items nicht laden.' });
-  }
-});
-
-app.put('/api/loot/:key', async (req, res) => {
-  const amount = Number(req.body.amount);
-  if (!Number.isFinite(amount) || amount < 0) {
-    return res.status(400).json({ error: 'Ungültige Menge.' });
-  }
-  try {
-    const { rows } = await pool.query(
-      `UPDATE loot_items
-       SET amount = $1, updated_at = now()
-       WHERE item_key = $2
-       RETURNING *`,
-      [amount, req.params.key]
-    );
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Item nicht gefunden.' });
-    }
-    res.json(toLootApi(rows[0]));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Menge nicht aktualisieren.' });
-  }
-});
-
-// ---------- Settings (Profil, aktuell nur Trials-Rang) ----------
-
-async function getSetting(key) {
-  const { rows } = await pool.query('SELECT value FROM app_settings WHERE key = $1', [key]);
-  return rows.length ? rows[0].value : null;
+.highscore-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.highscore-card{
+  background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;
+}
+.hs-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.3px;
+  margin-bottom: 10px;
 }
 
-async function setSetting(key, value) {
-  await pool.query(
-    `INSERT INTO app_settings (key, value, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (key) DO UPDATE
-     SET value = EXCLUDED.value, updated_at = now()`,
-    [key, value]
-  );
+.hs-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.hs-icon-money {
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px rgba(232, 163, 61, 0.35));
+}
+.hs-icon-xp {
+  color: var(--accent-2);
+  filter: drop-shadow(0 0 4px rgba(92, 139, 143, 0.35));
 }
 
-app.get('/api/settings', async (req, res) => {
-  try {
-    const rank = await getSetting('rank');
-    res.json({
-      rank: rank || null,
-      ranks: RANK_CATALOG
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Einstellungen nicht laden.' });
-  }
-});
+.hs-value{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;
+  margin-bottom:8px;
+}
+.hs-value.accent{color:var(--accent);}
+.hs-value.teal{color:var(--accent-2);}
+.hs-details{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);
+  margin-bottom:14px;min-height:16px;
+}
+.hs-toggle{
+  background:none;border:1px solid var(--border);color:var(--text-muted);
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;
+  padding:6px 12px;border-radius:var(--radius);cursor:pointer;
+}
+.hs-toggle:hover{color:var(--text);border-color:var(--text-faint);}
+.hs-list{display:none;margin-top:14px;border-top:1px solid var(--border-soft);padding-top:10px;}
+.hs-list.open{display:block;}
+.hs-list table{font-size:12.5px;}
+.hs-list td{padding:6px 4px;border-bottom:none;font-family:'IBM Plex Mono',monospace;}
+.hs-list td.rank{color:var(--text-faint);width:18px;}
+.hs-list tr:first-child td{color:var(--text);}
 
-app.put('/api/settings/rank', async (req, res) => {
-  const { rank } = req.body;
-  if (rank !== null && rank !== '' && typeof rank !== 'string') {
-    return res.status(400).json({ error: 'Ungültiger Rang.' });
-  }
-  if (rank && !RANK_CATALOG.some(r => r.key === rank)) {
-    return res.status(400).json({ error: 'Unbekannter Rang.' });
-  }
-  try {
-    await setSetting('rank', rank || '');
-    res.json({ rank: rank || null });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Konnte Rang nicht speichern.' });
-  }
-});
+.chart-wrap{height:220px;margin-top:6px;}
+#chartMapDist, #chartConditionDist{
+  filter:
+    drop-shadow(0 14px 24px rgba(0,0,0,0.9))
+    drop-shadow(0 0 26px rgba(247,136,47,0.5))
+    drop-shadow(0 0 48px rgba(247,136,47,0.28));
+  transition: filter .2s ease;
+}
+#chartMapDist:hover, #chartConditionDist:hover{
+  filter:
+    drop-shadow(0 16px 28px rgba(0,0,0,0.95))
+    drop-shadow(0 0 32px rgba(247,136,47,0.6))
+    drop-shadow(0 0 60px rgba(247,136,47,0.35));
+}
+.highscore-card .breakdown-table{margin-top:14px;}
+.highscore-card .breakdown-table th:nth-child(2), .highscore-card .breakdown-table th:nth-child(3),
+.highscore-card .breakdown-table td:nth-child(2), .highscore-card .breakdown-table td:nth-child(3){text-align:right;}
 
-// ---------- Steam-Profil ----------
-// Nur aktiv, wenn STEAM_API_KEY und STEAM_ID gesetzt sind. Der Key verlässt
-// niemals den Server - das Frontend bekommt nur das aufbereitete Ergebnis.
+.sub-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.sub-tabs button{
+  background:var(--panel-alt);border:1px solid var(--border);color:var(--text-muted);
+  font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;
+  padding:6px 12px;border-radius:var(--radius);cursor:pointer;
+}
+.sub-tabs button.active{color:var(--accent);border-color:var(--accent-dim);}
 
-const STEAM_API_KEY = process.env.STEAM_API_KEY || '';
-const STEAM_ID = process.env.STEAM_ID || '';
-const STEAM_CACHE_MS = 5 * 60 * 1000;
-let steamProfileCache = { data: null, ts: 0 };
+.analysis-block{display:none;}
+.analysis-block.active{display:block;}
 
-function steamConfigured() {
-  return Boolean(STEAM_API_KEY && STEAM_ID);
+@media(max-width:720px){
+  .form-grid{grid-template-columns:repeat(3,1fr);}
+  .field.span-2{grid-column:span 2;}
+  .stat-row{grid-template-columns:repeat(3,1fr);}
+  .highscore-grid{grid-template-columns:1fr;}
+  header{flex-direction:column;align-items:flex-start;gap:10px;}
+  .header-right{width:100%;justify-content:space-between;}
+  .header-stats{gap:14px;}
 }
 
-function personaStateLabel(state) {
-  const map = {
-    0: 'offline',
-    1: 'online',
-    2: 'busy',
-    3: 'away',
-    4: 'snooze',
-    5: 'looking_to_trade',
-    6: 'looking_to_play'
-  };
-  return map[state] ?? 'offline';
+.ticker-wrap{
+  margin-top:32px;
+  border-top:1px solid var(--border);
+  padding-top:14px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.ticker-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:.5px;
+  color:var(--text-faint);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.ticker-viewport{
+  overflow:hidden;
+  flex:1;
+  mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.ticker-track{
+  display:flex;
+  align-items:center;
+  gap:36px;
+  width:max-content;
+  animation:ticker-scroll 40s linear infinite;
+}
+.ticker-track img{
+  height:26px;
+  width:auto;
+  object-fit:contain;
+  opacity:.55;
+  filter:grayscale(1);
+  transition:opacity .2s ease, filter .2s ease;
+}
+.ticker-track img:hover{
+  opacity:1;
+  filter:grayscale(0);
+}
+@keyframes ticker-scroll{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); }
 }
 
-app.get('/api/steam/profile', async (req, res) => {
-  if (!steamConfigured()) {
-    return res.json({ configured: false });
-  }
-  try {
-    const now = Date.now();
-    if (steamProfileCache.data && (now - steamProfileCache.ts) < STEAM_CACHE_MS) {
-      return res.json(steamProfileCache.data);
-    }
-    const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${encodeURIComponent(STEAM_API_KEY)}&steamids=${encodeURIComponent(STEAM_ID)}`;
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`Steam API Status ${r.status}`);
-    const data = await r.json();
-    const player = data && data.response && data.response.players && data.response.players[0];
-    if (!player) throw new Error('Kein Steam-Profil in der Antwort gefunden.');
+.app-footer{
+margin-top:32px;
+text-align:center;
+font-family:'IBM Plex Mono', monospace;
+font-size:11px;
+color:var(--text-faint);
+}
 
-    const result = {
-      configured: true,
-      name: player.personaname,
-      avatar: player.avatarfull,
-      profileUrl: player.profileurl,
-      status: personaStateLabel(player.personastate),
-      inGame: Boolean(player.gameid)
-    };
-    steamProfileCache = { data: result, ts: now };
-    res.json(result);
-  } catch (err) {
-    console.error('Steam-Profil-Fehler:', err.message);
-    res.status(502).json({ configured: true, error: 'Steam-Profil konnte nicht geladen werden.' });
-  }
-});
+.loot-total-card{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.loot-total-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  letter-spacing:.4px;
+  color:var(--text-faint);
+}
+.loot-total-value{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  font-size:36px;
+  color:var(--accent);
+  filter:drop-shadow(0 0 14px rgba(232,163,61,0.25));
+}
 
-const PORT = process.env.PORT || 3000;
+input.loot-amount-input{
+  background:var(--panel-alt);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13.5px;
+  padding:6px 8px;
+  border-radius:var(--radius);
+  outline:none;
+  width:90px;
+  text-align:right;
+  transition:border-color .15s ease;
+}
+input.loot-amount-input:focus{border-color:var(--accent-2);}
 
-initDb()
-  .then(() => {
-    app.listen(PORT, () => console.log(`API läuft auf Port ${PORT}`));
-  })
-  .catch(err => {
-    console.error(err);
-    process.exit(1);
-  });
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
