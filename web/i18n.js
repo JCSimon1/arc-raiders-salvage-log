@@ -112,7 +112,7 @@ const translations = {
     steamStatus_looking_to_trade: 'Looking to trade',
     steamStatus_looking_to_play: 'Looking to play',
     settingsLanguageTitle: 'Language',
-    settingsRankTitle: 'Trials Rank'
+    settingsRankTitle: 'Trials Rank',
     pagePrev: '← Prev', pageNext: 'Next →', pageInfo: 'Page {page} of {total}'
   }
 };
