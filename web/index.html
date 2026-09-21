@@ -132,6 +132,7 @@
         <button class="btn ghost" id="clearFilters" data-i18n="clearFilters"></button>
       </div>
       <div id="fullTableWrap"></div>
+      <div class="pagination" id="listPagination"></div>
     </div>
   </div>
 
@@ -258,6 +259,8 @@ let editingId = null;
 let lootSaveTimers = {};
 let rankCatalog = [];
 let currentRank = null;
+let listPage = 1;
+const LIST_PAGE_SIZE = 20;
 
 const $ = sel => document.querySelector(sel);
 const COMPANY_LOGOS = [
@@ -746,9 +749,31 @@ function renderFullTable(){
     if(monthF && r.date && r.date.slice(0,7)!==monthF) return false;
     return true;
   });
-  $('#fullTableWrap').innerHTML = tableHTML(sortedRounds(list));
+  list = sortedRounds(list);
+
+  const totalPages = Math.max(1, Math.ceil(list.length / LIST_PAGE_SIZE));
+  if(listPage > totalPages) listPage = totalPages;
+  if(listPage < 1) listPage = 1;
+  const start = (listPage - 1) * LIST_PAGE_SIZE;
+  const pageItems = list.slice(start, start + LIST_PAGE_SIZE);
+
+  $('#fullTableWrap').innerHTML = tableHTML(pageItems);
   bindEditButtons('#fullTableWrap');
   bindDeleteButtons('#fullTableWrap');
+  renderListPagination(totalPages, list.length);
+}
+
+function renderListPagination(totalPages, totalItems){
+  const wrap = $('#listPagination');
+  if(!wrap) return;
+  if(totalItems === 0){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <button class="btn ghost" id="pagePrev" ${listPage<=1?'disabled':''}>${t('pagePrev')}</button>
+    <span class="pagination-info">${t('pageInfo').replace('{page}', listPage).replace('{total}', totalPages)}</span>
+    <button class="btn ghost" id="pageNext" ${listPage>=totalPages?'disabled':''}>${t('pageNext')}</button>
+  `;
+  $('#pagePrev').addEventListener('click', ()=>{ if(listPage>1){ listPage--; renderFullTable(); } });
+  $('#pageNext').addEventListener('click', ()=>{ if(listPage<totalPages){ listPage++; renderFullTable(); } });
 }
 
 function populateFilterOptions(){

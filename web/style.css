@@ -72,7 +72,6 @@ header{
 .stat-mini b.accent{color:var(--accent);}
 .stat-mini b.teal{color:var(--accent-2);}
 
-/* ---------- Profil-Leiste (zwischen Header und Tabs) ---------- */
 .profile-bar{
   display:flex;justify-content:flex-end;align-items:stretch;
   gap:0;margin-bottom:24px;flex-wrap:wrap;
@@ -85,7 +84,7 @@ header{
 }
 .profile-card + .profile-card{border-left:1px solid var(--border-soft);}
 .profile-card-icon{
-  width:36px;height:36px;object-fit:contain;flex-shrink:0;
+  width:56px;height:56px;object-fit:contain;flex-shrink:0;
   border-radius:var(--radius);
   filter:drop-shadow(0 0 8px rgba(232,163,61,0.25));
   animation: float 3s ease-in-out infinite;
@@ -107,7 +106,7 @@ header{
   filter:drop-shadow(0 0 6px rgba(92,139,143,0.55));
 }
 .profile-card-avatar{
-  width:36px;height:36px;object-fit:cover;flex-shrink:0;
+  width:56px;height:56px;object-fit:cover;flex-shrink:0;
   border-radius:50%;
   filter:drop-shadow(0 0 6px rgba(92,139,143,0.35));
 }
@@ -443,4 +442,17 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
+}
+
+.pagination{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin-top:16px;
+}
+.pagination-info{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  color:var(--text-muted);
 }

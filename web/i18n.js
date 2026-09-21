@@ -54,7 +54,8 @@ const translations = {
     steamStatus_looking_to_trade: 'Handeln',
     steamStatus_looking_to_play: 'Spielbereit',
     settingsLanguageTitle: 'Sprache',
-    settingsRankTitle: 'Trials-Rang'
+    settingsRankTitle: 'Trials-Rang',
+    pagePrev: '← Zurück', pageNext: 'Weiter →', pageInfo: 'Seite {page} von {total}'
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -112,5 +113,6 @@ const translations = {
     steamStatus_looking_to_play: 'Looking to play',
     settingsLanguageTitle: 'Language',
     settingsRankTitle: 'Trials Rank'
+    pagePrev: '← Prev', pageNext: 'Next →', pageInfo: 'Page {page} of {total}'
   }
 };
