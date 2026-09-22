@@ -42,6 +42,7 @@ const translations = {
     thItem: 'Item', thPrice: 'Preis', thAmount: 'Menge', thSum: 'Summe',
     lootTotalLabel: 'GESAMTWERT STASH',
     lootSaveError: 'Fehler beim Speichern der Menge — Server erreichbar?',
+    pagePrev: '← Zurück', pageNext: 'Weiter →', pageInfo: 'Seite {page} von {total}',
     profileRankPlaceholder: 'Rang wählen…',
     profileRankCardLabel: 'RANG',
     profileRankNone: 'Kein Rang gewählt',
@@ -55,7 +56,19 @@ const translations = {
     steamStatus_looking_to_play: 'Spielbereit',
     settingsLanguageTitle: 'Sprache',
     settingsRankTitle: 'Trials-Rang',
-    pagePrev: '← Zurück', pageNext: 'Weiter →', pageInfo: 'Seite {page} von {total}'
+    rcEyebrow: 'ROUND REPORT',
+    rcTitle: 'Round Report',
+    rcCondition: 'CONDITION',
+    rcMoney: '$ VERDIENT',
+    rcXP: 'XP ERHALTEN',
+    rcDeltaMoneyOver: 'über deinem Ø-Verdienst',
+    rcDeltaMoneyUnder: 'unter deinem Ø-Verdienst',
+    rcDeltaXPOver: 'über deinem Ø-XP',
+    rcDeltaXPUnder: 'unter deinem Ø-XP',
+    rcTopRun: 'TOP RUN',
+    rcClose: 'SCHLIESSEN ✕',
+    rcEditBtn: 'Bearbeiten',
+    rcArchiveBtn: 'Archivieren'
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -100,6 +113,7 @@ const translations = {
     thItem: 'Item', thPrice: 'Price', thAmount: 'Amount', thSum: 'Sum',
     lootTotalLabel: 'TOTAL STASH VALUE',
     lootSaveError: 'Failed to save amount — is the server reachable?',
+    pagePrev: '← Prev', pageNext: 'Next →', pageInfo: 'Page {page} of {total}',
     profileRankPlaceholder: 'Select rank…',
     profileRankCardLabel: 'RANK',
     profileRankNone: 'No rank selected',
@@ -113,6 +127,18 @@ const translations = {
     steamStatus_looking_to_play: 'Looking to play',
     settingsLanguageTitle: 'Language',
     settingsRankTitle: 'Trials Rank',
-    pagePrev: '← Prev', pageNext: 'Next →', pageInfo: 'Page {page} of {total}'
+    rcEyebrow: 'ROUND REPORT',
+    rcTitle: 'Round Report',
+    rcCondition: 'CONDITION',
+    rcMoney: '$ EARNED',
+    rcXP: 'XP GAINED',
+    rcDeltaMoneyOver: 'over your avg. earnings',
+    rcDeltaMoneyUnder: 'under your avg. earnings',
+    rcDeltaXPOver: 'over your avg. XP',
+    rcDeltaXPUnder: 'under your avg. XP',
+    rcTopRun: 'TOP RUN',
+    rcClose: 'CLOSE ✕',
+    rcEditBtn: 'Edit',
+    rcArchiveBtn: 'Archive'
   }
 };

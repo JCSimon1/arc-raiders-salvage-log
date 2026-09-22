@@ -247,6 +247,54 @@
   <footer class="app-footer">v<span id="appVersion">%%VERSION%%</span></footer>
 </div>
 
+<!-- Round Report card: opens when a round row is clicked -->
+<div class="rc-overlay" id="rcOverlay">
+  <div class="rc-card" id="rcCard">
+    <div class="rc-corner-tl"></div><div class="rc-corner-tr"></div><div class="rc-corner-bl"></div><div class="rc-corner-br"></div>
+    <button class="rc-close" id="rcCloseBtn" data-i18n="rcClose"></button>
+
+    <div class="rc-banner">
+      <img class="rc-banner-img" id="rcBannerImg" alt="" onerror="this.style.display='none'">
+      <div class="rc-scrim"></div>
+      <div class="rc-eyebrow" id="rcReportId">RUN-000</div>
+      <div class="rc-map-name" id="rcMapName">—</div>
+      <div class="rc-condition-badge" id="rcConditionBadge">
+        <img id="rcConditionBadgeImg" alt="" onerror="this.closest('.rc-condition-badge').style.display='none'">
+      </div>
+    </div>
+
+    <div class="rc-inner">
+      <div class="rc-meta-row">
+        <span data-i18n="rcEyebrow"></span>
+        <span id="rcTimestamp">—</span>
+      </div>
+
+      <div class="rc-title">Round <span>Report</span></div>
+
+      <div class="rc-body">
+        <div class="rc-scan-mask"></div>
+        <div class="rc-scanline"></div>
+
+        <div class="rc-row"><span class="rc-k" data-i18n="rcCondition"></span><span class="rc-v" id="rcConditionValue">—</span></div>
+        <div class="rc-row"><span class="rc-k" data-i18n="rcMoney"></span><span class="rc-v money" id="rcMoney">0</span></div>
+        <div class="rc-row"><span class="rc-k" data-i18n="rcXP"></span><span class="rc-v xp" id="rcXP">0</span></div>
+
+        <div class="rc-deltas">
+          <div class="rc-delta" id="rcDeltaMoney"></div>
+          <div class="rc-delta xp" id="rcDeltaXP"></div>
+        </div>
+
+        <div class="rc-stamp" id="rcStamp" data-i18n="rcTopRun"></div>
+      </div>
+    </div>
+
+    <div class="rc-footer">
+      <button class="btn ghost" id="rcEditBtn" data-i18n="rcEditBtn"></button>
+      <button class="btn primary" id="rcOkBtn" data-i18n="rcArchiveBtn"></button>
+    </div>
+  </div>
+</div>
+
 <script src="i18n.js"></script>							   
 <script>
 const API = '/api/rounds';
@@ -257,10 +305,11 @@ let loot = [];
 let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
-let rankCatalog = [];
-let currentRank = null;
 let listPage = 1;
 const LIST_PAGE_SIZE = 20;
+let rankCatalog = [];
+let currentRank = null;
+let rcCurrentRound = null;
 
 const $ = sel => document.querySelector(sel);
 const COMPANY_LOGOS = [
@@ -331,6 +380,7 @@ function setLang(lang){
   populateFilterOptions();
   refreshAll();
   if(lastSteamData) showSteamCard(lastSteamData);
+  if(rcCurrentRound) openRoundCard(rcCurrentRound, { skipAnimation:true });
 }
 $('#langDE').addEventListener('click', ()=>setLang('de'));
 $('#langEN').addEventListener('click', ()=>setLang('en'));
@@ -695,7 +745,7 @@ function tableHTML(list, opts){
     return '<div class="empty-state">' + t('emptyState') + '</div>';
   }
   const rows = list.map(r=>`
-    <tr>
+    <tr data-id="${r.id}" class="rc-row-trigger">
       <td>${r.number}</td>
       <td>${formatDate(r.date)}</td>
       <td>${r.time||''}</td>
@@ -788,7 +838,8 @@ function populateFilterOptions(){
 
 function bindEditButtons(scopeSel){
   document.querySelectorAll(scopeSel+' .edit').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
       const round = rounds.find(r=>String(r.id)===String(btn.dataset.id));
       if(round) enterEditMode(round);
     });
@@ -797,7 +848,8 @@ function bindEditButtons(scopeSel){
 
 function bindDeleteButtons(scopeSel){
   document.querySelectorAll(scopeSel+' .del').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
       try{
         await deleteRound(btn.dataset.id);
         if(editingId && String(editingId)===String(btn.dataset.id)){
@@ -813,12 +865,119 @@ function bindDeleteButtons(scopeSel){
   });
 }
 
-$('#filterMap').addEventListener('change', renderFullTable);
-$('#filterCondition').addEventListener('change', renderFullTable);
-$('#filterMonth').addEventListener('change', renderFullTable);
+$('#filterMap').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
+$('#filterCondition').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
+$('#filterMonth').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#clearFilters').addEventListener('click', ()=>{
   $('#filterMap').value=''; $('#filterCondition').value=''; $('#filterMonth').value='';
+  listPage = 1;
   renderFullTable();
+});
+
+// ---------- Round Report Card ----------
+function avgStats(){
+  const s = statsFor(rounds);
+  return { avgMoney: s.avgMoney, avgXP: s.avgXP };
+}
+
+function rcDeltaLine(el, value, avg, overKey, underKey){
+  if(!avg){
+    el.textContent = '';
+    return 0;
+  }
+  const delta = Math.round(((value - avg) / avg) * 100);
+  el.classList.toggle('neg', delta < 0);
+  const label = delta >= 0 ? t(overKey) : t(underKey);
+  el.innerHTML = `<b>${delta >= 0 ? '+' : ''}${delta}%</b> ${label}`;
+  return delta;
+}
+
+function rcCountUp(el, target, duration){
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * eased).toLocaleString(t('numberLocale'));
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function openRoundCard(round, opts){
+  opts = opts || {};
+  rcCurrentRound = round;
+
+  const overlay = $('#rcOverlay');
+  const card = $('#rcCard');
+
+  $('#rcReportId').textContent = 'RUN-' + String(round.number).padStart(3, '0');
+  $('#rcTimestamp').textContent = formatDate(round.date) + (round.time ? ' · ' + round.time : '');
+  $('#rcMapName').textContent = round.map;
+  $('#rcConditionValue').textContent = round.condition;
+
+  const bannerImg = $('#rcBannerImg');
+  bannerImg.style.display = '';
+  bannerImg.src = mapImgSrc(round.map);
+
+  const badge = $('#rcConditionBadge');
+  badge.style.display = '';
+  $('#rcConditionBadgeImg').src = conditionImgSrc(round.condition);
+
+  const { avgMoney, avgXP } = avgStats();
+  rcDeltaLine($('#rcDeltaMoney'), Number(round.money) || 0, avgMoney, 'rcDeltaMoneyOver', 'rcDeltaMoneyUnder');
+  rcDeltaLine($('#rcDeltaXP'), Number(round.xp) || 0, avgXP, 'rcDeltaXPOver', 'rcDeltaXPUnder');
+
+  const isTop = avgMoney > 0 && (Number(round.money) || 0) >= avgMoney * 1.2;
+  card.classList.toggle('rc-top-run', isTop);
+
+  if(opts.skipAnimation){
+    $('#rcMoney').textContent = fmtXP(round.money);
+    $('#rcXP').textContent = fmtXP(round.xp);
+    overlay.classList.add('open');
+    return;
+  }
+
+  $('#rcMoney').textContent = '0';
+  $('#rcXP').textContent = '0';
+
+  overlay.classList.remove('open');
+  void card.offsetWidth; // reflow, damit die Animation bei erneutem Öffnen neu startet
+  overlay.classList.add('open');
+
+  setTimeout(() => {
+    rcCountUp($('#rcMoney'), Number(round.money) || 0, 700);
+    rcCountUp($('#rcXP'), Number(round.xp) || 0, 700);
+  }, 550);
+}
+
+function closeRoundCard(){
+  $('#rcOverlay').classList.remove('open');
+  rcCurrentRound = null;
+}
+
+document.addEventListener('click', e=>{
+  const row = e.target.closest('tbody tr[data-id]');
+  if(row && !e.target.closest('td.actions')){
+    const round = rounds.find(r => String(r.id) === String(row.dataset.id));
+    if(round) openRoundCard(round);
+    return;
+  }
+  if(e.target.closest('#rcCloseBtn') || e.target.closest('#rcOkBtn')){
+    closeRoundCard();
+    return;
+  }
+  if(e.target.closest('#rcEditBtn')){
+    const round = rcCurrentRound;
+    closeRoundCard();
+    if(round) enterEditMode(round);
+    return;
+  }
+  if(e.target.id === 'rcOverlay'){
+    closeRoundCard();
+  }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') closeRoundCard();
 });
 
 // ---------- Loot ----------
