@@ -604,7 +604,7 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
 
 .rc-stamp{
   position:absolute;
-  top:120px;right:16px;
+  top:42px;left:16px;
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;
   letter-spacing:1.5px;
   color:var(--accent);
@@ -616,7 +616,7 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   z-index:4;
   mix-blend-mode:screen;
   display:none;
-  filter:drop-shadow(0 0 8px rgba(232,163,61,0.5));
+  filter:drop-shadow(0 0 8px rgba(255, 0, 0, 1));
 }
 .rc-overlay.open .rc-card.rc-top-run .rc-stamp{
   display:block;
