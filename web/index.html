@@ -931,6 +931,7 @@ function openRoundCard(round, opts){
   const bannerSkull = $('#rcBannerSkull');
   if(bannerSkull){
   bannerSkull.classList.toggle('hidden', Number(round.money) !== 0);
+  }
 
   const badge = $('#rcConditionBadge');
   badge.style.display = '';
