@@ -248,9 +248,17 @@ td.actions button.del:hover{color:var(--negative);}
 .stat-card{
   background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:safe center;
+  gap:8px;
 }
-.stat-card .label{font-size:11.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
-.stat-card .value{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:26px;color:var(--text);}
+.stat-card .label{
+  font-size:11.5px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;
+}
+.stat-card .value{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:32px;color:var(--text);
+}
 .stat-card .value.accent{color:var(--accent);}
 .stat-card .value.negative{color:var(--negative);}
 .stat-card .value.teal{color:var(--accent-2);}
