@@ -68,6 +68,7 @@ const translations = {
     rcTopRun: 'TOP RUN',
     rcClose: 'SCHLIESSEN ✕',
     rcEditBtn: 'Bearbeiten',
+    statDeaths: 'TODE', headerDeathsLabel: 'TODE',
     rcArchiveBtn: 'Archivieren'
   },
   en: {
@@ -139,6 +140,7 @@ const translations = {
     rcTopRun: 'TOP RUN',
     rcClose: 'CLOSE ✕',
     rcEditBtn: 'Edit',
+    statDeaths: 'DEATHS', headerDeathsLabel: 'DEATHS',
     rcArchiveBtn: 'Archive'
   }
 };

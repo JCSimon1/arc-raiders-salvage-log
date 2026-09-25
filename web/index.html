@@ -22,6 +22,7 @@
     <div class="header-right">
       <div class="header-stats">
         <div class="stat-mini"><span data-i18n="headerRoundsLabel"></span><b id="runCountVal">0</b></div>
+        <div class="stat-mini"><span data-i18n="headerDeathsLabel"></span><b id="deathCountVal" class="negative">0</b></div>
         <div class="stat-mini"><span data-i18n="headerMoneyLabel"></span><b id="totalMoneyVal" class="accent">0</b></div>
         <div class="stat-mini"><span data-i18n="headerXPLabel"></span><b id="totalXPVal" class="teal">0</b></div>
       </div>
@@ -1078,8 +1079,9 @@ function statsFor(list){
   const count = list.length;
   const totalMoney = list.reduce((s,r)=>s+(Number(r.money)||0),0);
   const totalXP = list.reduce((s,r)=>s+(Number(r.xp)||0),0);
+  const deaths = list.filter(r=>Number(r.money)===0).length;
   return {
-    count, totalMoney, totalXP,
+    count, totalMoney, totalXP, deaths,
     avgMoney: count? totalMoney/count : 0,
     avgXP: count? totalXP/count : 0
   };
@@ -1097,6 +1099,7 @@ function renderGlobalStats(){
   const s = statsFor(rounds);
   $('#globalStats').innerHTML = `
     <div class="stat-card"><div class="label">${t('statRounds')}</div><div class="value">${s.count}</div></div>
+    <div class="stat-card"><div class="label">${t('statDeaths')}</div><div class="value negative">${s.deaths}</div></div>
     <div class="stat-card"><div class="label">${t('statTotalMoney')}</div><div class="value accent">${fmtMoney(s.totalMoney)}</div></div>
     <div class="stat-card"><div class="label">${t('statAvgMoney')}</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
     <div class="stat-card"><div class="label">${t('statTotalXP')}</div><div class="value teal">${fmtXP(s.totalXP)}</div></div>
@@ -1430,6 +1433,7 @@ function updateDatalists(){
 function refreshAll(){
   const s = statsFor(rounds);
   $('#runCountVal').textContent = s.count;
+  $('#deathCountVal').textContent = s.deaths;
   $('#totalMoneyVal').textContent = fmtMoney(s.totalMoney);
   $('#totalXPVal').textContent = fmtXP(s.totalXP);
   renderRecentTable();
