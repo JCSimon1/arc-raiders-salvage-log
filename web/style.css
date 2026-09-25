@@ -640,20 +640,20 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
 }
 .map-thumb-skull{
   position:absolute;
-  top:50%;left:50%;
+  top:10%;left:50%;
   transform:translate(-50%,-50%);
   width:18px;height:18px;
   object-fit:contain;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,0.85));
+  filter:drop-shadow(0 1px 3px rgba(232,163,61,0.5));
   pointer-events:none;
 }
 .rc-banner-skull{
   position:absolute;
-  top:50%;left:50%;
+  top:78%;left:80%;
   transform:translate(-50%,-50%);
   width:56px;height:56px;
   object-fit:contain;
-  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.9));
+  filter:drop-shadow(0 2px 6px rgba(232,163,61,0.5));
   z-index:2;
   pointer-events:none;
 }
