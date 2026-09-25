@@ -271,6 +271,30 @@ td.actions button.del:hover{color:var(--negative);}
   background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px 18px;
 }
+.hs-top{
+  position:relative;
+  margin:-16px -18px 0;
+  padding:16px 18px 14px;
+  overflow:hidden;
+  border-radius:var(--radius) var(--radius) 0 0;
+}
+.hs-bg-img{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  z-index:0;
+  opacity:.55;
+  filter:saturate(0.85) brightness(0.7);
+  transition:opacity .2s ease;
+}
+.hs-bg-img.is-empty{opacity:0;}
+.hs-bg-scrim{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(35,42,46,0.1) 0%, var(--panel-alt) 100%);
+  z-index:1;
+}
+.hs-content{position:relative;z-index:2;}
 .hs-label {
   display: flex;
   align-items: center;

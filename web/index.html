@@ -141,28 +141,40 @@
       <h2 class="panel-title" data-i18n="highscoreTitle"></h2>
       <div class="highscore-grid">
         <div class="highscore-card">
-          <div class="hs-label">
-            <span data-i18n="hsMoneyLabel"></span>
-            <svg class="hs-icon hs-icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-              <path d="M12 2 21 6.5v6c0 5-4 8.5-9 9.5-5-1-9-4.5-9-9.5v-6z" stroke-linejoin="round"/>
-              <path d="M12 8v8M9.8 9.6c0-1 1-1.6 2.2-1.6s2.2.7 2.2 1.6-1 1.4-2.2 1.4-2.2.6-2.2 1.6 1 1.6 2.2 1.6 2.2-.6 2.2-1.6" stroke-linecap="round"/>
-            </svg>
+          <div class="hs-top">
+            <img class="hs-bg-img is-empty" id="hsMoneyBg" alt="" onerror="this.classList.add('is-empty')">
+            <div class="hs-bg-scrim"></div>
+            <div class="hs-content">
+              <div class="hs-label">
+                <span data-i18n="hsMoneyLabel"></span>
+                <svg class="hs-icon hs-icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <path d="M12 2 21 6.5v6c0 5-4 8.5-9 9.5-5-1-9-4.5-9-9.5v-6z" stroke-linejoin="round"/>
+                  <path d="M12 8v8M9.8 9.6c0-1 1-1.6 2.2-1.6s2.2.7 2.2 1.6-1 1.4-2.2 1.4-2.2.6-2.2 1.6 1 1.6 2.2 1.6 2.2-.6 2.2-1.6" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="hs-value accent" id="hsMoneyValue">—</div>
+              <div class="hs-details" id="hsMoneyDetails"></div>
+            </div>
           </div>
-          <div class="hs-value accent" id="hsMoneyValue">—</div>
-          <div class="hs-details" id="hsMoneyDetails"></div>
           <button class="hs-toggle" data-metric="money"></button>
           <div class="hs-list" id="hsMoneyList"></div>
         </div>
         <div class="highscore-card">
-          <div class="hs-label">
-            <span data-i18n="hsXPLabel"></span>
-              <svg class="hs-icon hs-icon-xp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-                <path d="M12 2 21 7v10l-9 5-9-5V7z" stroke-linejoin="round"/>
-                <path d="M13 7 8 13h4l-1 5 6-7h-4z" fill="currentColor" stroke="none"/>
-              </svg>
+          <div class="hs-top">
+            <img class="hs-bg-img is-empty" id="hsXPBg" alt="" onerror="this.classList.add('is-empty')">
+            <div class="hs-bg-scrim"></div>
+            <div class="hs-content">
+              <div class="hs-label">
+                <span data-i18n="hsXPLabel"></span>
+                <svg class="hs-icon hs-icon-xp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <path d="M12 2 21 7v10l-9 5-9-5V7z" stroke-linejoin="round"/>
+                  <path d="M13 7 8 13h4l-1 5 6-7h-4z" fill="currentColor" stroke="none"/>
+                </svg>
+              </div>
+              <div class="hs-value teal" id="hsXPValue">—</div>
+              <div class="hs-details" id="hsXPDetails"></div>
+            </div>
           </div>
-          <div class="hs-value teal" id="hsXPValue">—</div>
-          <div class="hs-details" id="hsXPDetails"></div>
           <button class="hs-toggle" data-metric="xp"></button>
           <div class="hs-list" id="hsXPList"></div>
         </div>
@@ -1111,22 +1123,25 @@ function topRounds(metric, n){
     .slice(0, n);
 }
 
-function renderHighscoreCard(metric, valueId, detailsId, listId, fmt){
+function renderHighscoreCard(metric, valueId, detailsId, listId, fmt, bgId){
   const top = topRounds(metric, 5);
   const valueEl = document.getElementById(valueId);
   const detailsEl = document.getElementById(detailsId);
   const listEl = document.getElementById(listId);
+  const bgEl = bgId ? document.getElementById(bgId) : null;
 
   if(top.length===0){
     valueEl.textContent = '—';
     detailsEl.textContent = t('hsNoData');
     listEl.innerHTML = '';
+    setHsBg(bgEl, null);
     return;
   }
 
   const best = top[0];
   valueEl.textContent = fmt(best[metric]);
   detailsEl.textContent = `#${best.number} · ${best.map} · ${best.condition} · ${formatDate(best.date)}`;
+  setHsBg(bgEl, best.map);
 
   listEl.innerHTML = `
     <table>
@@ -1144,9 +1159,20 @@ function renderHighscoreCard(metric, valueId, detailsId, listId, fmt){
   `;
 }
 
+function setHsBg(imgEl, map){
+  if(!imgEl) return;
+  if(map){
+    imgEl.classList.remove('is-empty');
+    imgEl.src = mapImgSrc(map);
+  } else {
+    imgEl.classList.add('is-empty');
+    imgEl.removeAttribute('src');
+  }
+}
+
 function renderHighscores(){
-  renderHighscoreCard('money', 'hsMoneyValue', 'hsMoneyDetails', 'hsMoneyList', fmtMoney);
-  renderHighscoreCard('xp', 'hsXPValue', 'hsXPDetails', 'hsXPList', fmtXP);
+  renderHighscoreCard('money', 'hsMoneyValue', 'hsMoneyDetails', 'hsMoneyList', fmtMoney, 'hsMoneyBg');
+  renderHighscoreCard('xp', 'hsXPValue', 'hsXPDetails', 'hsXPList', fmtXP, 'hsXPBg');
 }
 
 function updateHsToggleLabels(){
