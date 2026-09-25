@@ -1098,7 +1098,7 @@ function renderAnalysis(){
 function renderGlobalStats(){
   const s = statsFor(rounds);
   $('#globalStats').innerHTML = `
-    <div class="stat-card"><div class="label">${t('statRounds')}</div><div class="value">${s.count}</div></div>
+    <div class="stat-card"><div class="value">${s.count}</div><div class="label">${t('statRounds')}</div></div>
     <div class="stat-card"><div class="label">${t('statDeaths')}</div><div class="value negative">${s.deaths}</div></div>
     <div class="stat-card"><div class="label">${t('statTotalMoney')}</div><div class="value accent">${fmtMoney(s.totalMoney)}</div></div>
     <div class="stat-card"><div class="label">${t('statAvgMoney')}</div><div class="value">${fmtMoney(Math.round(s.avgMoney))}</div></div>
