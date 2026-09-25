@@ -1,243 +1,250 @@
-# Arc Log API
+# API Reference
 
-REST-API for the Arc Raiders Salvage Log. The API is provided by the `api` container and made accessible via nginx at `/api/`
-
-**Base URL:** `http://<host>:<WEB_PORT>/api`
-**Format:** JSON (`Content-Type: application/json`)
+Base URL (behind the nginx proxy): `/api`
+All requests/responses use `application/json`. There is no authentication — the API is expected to sit behind the bundled nginx container on a trusted network.
 
 ## Table of contents
-
-- [Arc Log API](#arc-log-api)
+- [API Reference](#api-reference)
   - [Table of contents](#table-of-contents)
-  - [Data model](#data-model)
-  - [GET /health](#get-health)
-  - [GET /rounds](#get-rounds)
-  - [POST /rounds](#post-rounds)
-  - [PUT /rounds/:id](#put-roundsid)
-  - [DELETE /rounds/:id](#delete-roundsid)
-  - [Error Format](#error-format)
-
-## Data model
-
-A **Run** (round) contains the following fields:
-
-| FFiels        | Type     | Type | Description                                  |
-|-------------|----------|---------|------------------------------------------------|
-| `id`        | integer  | –       | Created by the API, only in response           |
-| `number`    | integer  | ja      | Number of the round                            |
-| `date`      | string   | ja      | Date in format `YYYY-MM-DD`                    |
-| `time`      | string   | ja      | Time in format `HH:MM`                         |
-| `map`       | string   | ja      | Name of the map                                |
-| `condition` | string   | ja      | Map condition (e.g. `Clear`, `Hurricane`)      |
-| `money`     | integer  | ja      | Earned in-game currency                        |
-| `xp`        | integer  | ja      | Received XP                                    |
-
-Example object as returned by the API:
-
-```json
-{
-  "id": 42,
-  "number": 17,
-  "date": "2026-09-01",
-  "time": "20:15",
-  "map": "Dam Battlegrounds",
-  "condition": "Hurricane",
-  "money": 3200,
-  "xp": 850
-}
-```
-
-Internally, the database stores the fields as `round_number`, `round_date`, `round_time`, and `map_condition` — externally (in the request body and response), they are named as shown in the table above.
+  - [Health](#health)
+    - [`GET /api/health`](#get-apihealth)
+  - [Rounds](#rounds)
+    - [`GET /api/rounds`](#get-apirounds)
+    - [`POST /api/rounds`](#post-apirounds)
+    - [`PUT /api/rounds/:id`](#put-apiroundsid)
+    - [`DELETE /api/rounds/:id`](#delete-apiroundsid)
+  - [Loot Stash](#loot-stash)
+    - [`GET /api/loot`](#get-apiloot)
+    - [`PUT /api/loot/:key`](#put-apilootkey)
+  - [Settings](#settings)
+    - [`GET /api/settings`](#get-apisettings)
+    - [`PUT /api/settings/rank`](#put-apisettingsrank)
+  - [Steam Profile](#steam-profile)
+    - [`GET /api/steam/profile`](#get-apisteamprofile)
+  - [Error format](#error-format)
 
 ---
 
-## GET /health
+## Health
 
-Simple health check, e.g., for monitoring or Docker health checks.
+### `GET /api/health`
 
-**Request**
+Used by the container healthcheck (`wget --spider`).
 
-```
-GET /api/health
-```
-
-**Response** `200 OK`
-
+**Response `200`**
 ```json
 { "ok": true }
 ```
 
 ---
 
-## GET /rounds
+## Rounds
 
-Returns all recorded laps, sorted by date/time/number in descending order (newest first).
+A round represents one logged Arc Raiders run.
 
-**Request**
+| Field | Type | Notes |
+| ----- | ---- | ----- |
+| `id` | integer | Auto-generated |
+| `number` | integer | User-defined run number, auto-incremented as a suggestion in the UI |
+| `date` | string (`YYYY-MM-DD`) | Required |
+| `time` | string (`HH:MM`) | Required |
+| `map` | string | Required |
+| `condition` | string | Required |
+| `money` | integer | `$` earned. `0` is treated as a death (⚠ shown with a skull icon, counted in the "Deaths" stat) |
+| `xp` | integer | XP gained |
 
-```
-GET /api/rounds
-```
+### `GET /api/rounds`
 
-**Response** `200 OK`
+Returns all rounds, sorted by date, time, then round number (all descending).
 
+**Response `200`**
 ```json
 [
   {
     "id": 42,
     "number": 17,
-    "date": "2026-09-01",
-    "time": "20:15",
-    "map": "Dam Battlegrounds",
+    "date": "2026-09-20",
+    "time": "21:15",
+    "map": "Stella Montis",
     "condition": "Hurricane",
-    "money": 3200,
-    "xp": 850
-  },
-  {
-    "id": 41,
-    "number": 16,
-    "date": "2026-08-30",
-    "time": "19:40",
-    "map": "Buried City",
-    "condition": "Clear",
-    "money": 2100,
-    "xp": 600
+    "money": 8200,
+    "xp": 1450
   }
 ]
 ```
 
-**Error:** `500` for database errors.
+### `POST /api/rounds`
 
----
+Creates a new round.
 
-## POST /rounds
-
-Creates a new round
-
-**Request**
-
-```
-POST /api/rounds
-Content-Type: application/json
-```
-
+**Request body**
 ```json
 {
   "round_number": 17,
-  "round_date": "2026-09-01",
-  "round_time": "20:15",
-  "map": "Dam Battlegrounds",
+  "round_date": "2026-09-20",
+  "round_time": "21:15",
+  "map": "Stella Montis",
   "map_condition": "Hurricane",
-  "money": 3200,
-  "xp": 850
+  "money": 8200,
+  "xp": 1450
 }
 ```
+`round_date`, `round_time`, `map` and `map_condition` are required; missing any of them returns `400`.
 
-**Mandatory fields:** `round_date`, `round_time`, `map`, `map_condition`
-(`round_number`, `money`, and `xp` are accepted but not checked for presence)
+**Response `201`** — the created round (see shape under [GET /api/rounds](#get-apirounds)).
 
-**Response** `201 Created`
+**Errors**
+- `400` — required field missing
+- `500` — database error
 
-```json
-{
-  "id": 42,
-  "number": 17,
-  "date": "2026-09-01",
-  "time": "20:15",
-  "map": "Dam Battlegrounds",
-  "condition": "Hurricane",
-  "money": 3200,
-  "xp": 850
-}
-```
+### `PUT /api/rounds/:id`
 
-**Error**
+Replaces all fields of an existing round. Same body shape and required fields as `POST`.
 
+**Response `200`** — the updated round.
 
-| Status | Condition                           |
-|--------|-------------------------------------|
-| `400`  | A required field is missing         |
-| `500`  | Error while saving (e.g., DB down)  |
+**Errors**
+- `400` — required field missing
+- `404` — no round with this id
+- `500` — database error
+
+### `DELETE /api/rounds/:id`
+
+Deletes a round. Idempotent — does not error if the id does not exist.
+
+**Response `204`** — no body.
+
+**Errors**
+- `500` — database error
 
 ---
 
-## PUT /rounds/:id
+## Loot Stash
 
-Completely updates an existing round (all fields are overwritten).
+Loot items come from a fixed, server-side catalog (`LOOT_CATALOG` in `server.js`) — you cannot create or delete items via the API, only update the owned `amount`. Catalog `name`/`price` are re-synced from that list on every API start without touching stored `amount` values; update the catalog in code and redeploy to change prices.
 
-**Request**
+| Field | Type | Notes |
+| ----- | ---- | ----- |
+| `key` | string | Stable identifier, also used for the image at `/images/loot/<key>.webp` |
+| `name` | string | Display name |
+| `price` | integer | Sell price per unit |
+| `amount` | integer | Quantity currently owned, user-editable |
 
-```
-PUT /api/rounds/42
-Content-Type: application/json
-```
+### `GET /api/loot`
 
+Returns all loot items, sorted by price (descending), then name.
+
+**Response `200`**
 ```json
-{
-  "round_number": 17,
-  "round_date": "2026-09-01",
-  "round_time": "20:30",
-  "map": "Dam Battlegrounds",
-  "map_condition": "Clear",
-  "money": 3500,
-  "xp": 900
-}
+[
+  { "key": "matriarchreactor", "name": "Matriarch Reactor", "price": 11000, "amount": 2 },
+  { "key": "assessormatrix",   "name": "Assessor Matrix",   "price": 5000,  "amount": 0 }
+]
 ```
 
-**Mandatory fields:** `round_date`, `round_time`, `map`, `map_condition`
+### `PUT /api/loot/:key`
 
-**Response** `200 OK`
+Updates the owned amount of one loot item. `:key` is the item's `item_key` (e.g. `matriarchreactor`).
 
+**Request body**
 ```json
-{
-  "id": 42,
-  "number": 17,
-  "date": "2026-09-01",
-  "time": "20:30",
-  "map": "Dam Battlegrounds",
-  "condition": "Clear",
-  "money": 3500,
-  "xp": 900
-}
+{ "amount": 3 }
 ```
+`amount` must be a finite number `>= 0`.
 
-**Error**
+**Response `200`** — the updated item.
 
-| Status | Condition                                   |
-|--------|---------------------------------------------|
-| `400`  | A required field is missing                 |
-| `404`  | No round found with this `id`               |
-| `500`  | Error during update (e.g., DB unavailable)  |
-
+**Errors**
+- `400` — invalid/negative amount
+- `404` — unknown item key
+- `500` — database error
 
 ---
 
-## DELETE /rounds/:id
+## Settings
 
-Deletes a round for good.
+Currently only stores the selected Trials rank, in a generic `key`/`value` settings table.
 
-**Request**
+### `GET /api/settings`
 
+**Response `200`**
+```json
+{
+  "rank": "hotshot",
+  "ranks": [
+    { "key": "none", "name": "None" },
+    { "key": "rookie1", "name": "Rookie I" },
+    { "key": "hotshot", "name": "Hotshot" },
+    { "key": "cantinalegend", "name": "Cantina Legend" }
+  ]
+}
 ```
-DELETE /api/rounds/42
+`rank` is `null` if none has been selected yet. `ranks` is the full, fixed rank catalog (`RANK_CATALOG` in `server.js`) used to populate the dropdown on the Settings page; rank images are expected at `/images/ranks/<key>.webp`.
+
+### `PUT /api/settings/rank`
+
+**Request body**
+```json
+{ "rank": "hotshot" }
+```
+`rank` must be `null`, an empty string, or one of the keys from the `ranks` catalog above.
+
+**Response `200`**
+```json
+{ "rank": "hotshot" }
 ```
 
-**Response** `204 No Content` (no body, even if the ID did not exist — the operation is idempotent)
-
-**Error:** `500` for database errors.
+**Errors**
+- `400` — `rank` is not a string/null, or not a known rank key
+- `500` — database error
 
 ---
 
-## Error Format
+## Steam Profile
 
-Errors are returned as JSON with an `error` field (plain text in German, as displayed in the frontend).:
+Optional integration; only active when both `STEAM_API_KEY` and `STEAM_ID` are set on the `api` container (see the main [README](../README.md#environment-variables)). The Steam key never leaves the server — the frontend only ever calls this endpoint.
+
+### `GET /api/steam/profile`
+
+Server-side response is cached for 5 minutes to stay within Steam Web API rate limits.
+
+**Response `200` — not configured**
+```json
+{ "configured": false }
+```
+
+**Response `200` — configured**
+```json
+{
+  "configured": true,
+  "name": "Steam Name",
+  "avatar": "https://avatars.steamstatic.com/....jpg",
+  "profileUrl": "https://steamcommunity.com/id/...",
+  "status": "online",
+  "inGame": false
+}
+```
+`status` is one of: `offline`, `online`, `busy`, `away`, `snooze`, `looking_to_trade`, `looking_to_play`.
+
+**Response `502` — configured but upstream call failed**
+```json
+{ "configured": true, "error": "Steam-Profil konnte nicht geladen werden." }
+```
+The frontend treats any non-`200` or `error`/`configured: false` response as **hide the Steam card** — it never surfaces this as a hard failure to the user.
+
+---
+
+## Error format
+
+Error responses use a single `error` field with a message (currently German-language, matching the rest of the API):
 
 ```json
-{ "error": "Could not save round" }
+{ "error": "Pflichtfelder fehlen." }
 ```
-| Endpoint             | Possible error messages                            |
-|-----------------------|----------------------------------------------------|
-| `GET /rounds`         | `Could not load rounds.`                           |
-| `POST /rounds`        | `Required fields missing.` · `Could not save round.` |
-| `PUT /rounds/:id`     | `Required fields missing.` · `Round not found.` · `Could not update round.` |
-| `DELETE /rounds/:id`  | `Could not delete round.`|
+
+| Status | Meaning |
+| ------ | ------- |
+| `400` | Validation error (missing/invalid fields) |
+| `404` | Resource not found |
+| `500` | Unexpected server/database error |
+| `502` | Upstream (Steam) API call failed |
