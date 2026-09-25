@@ -1,0 +1,8 @@
+{
+    "badges": {
+        "money":  { "bronze": 100000, "silver": 250000, "gold": 500000,  "platinum": 1000000 },
+        "xp":     { "bronze": 50000,  "silver": 100000, "gold": 200000,  "platinum": 400000  },
+        "rounds": { "bronze": 10,     "silver": 25,     "gold": 50,      "platinum": 100 },
+        "weeklyScale": 0.25
+    }
+}

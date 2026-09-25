@@ -255,6 +255,7 @@
 
     <div class="rc-banner">
       <img class="rc-banner-img" id="rcBannerImg" alt="" onerror="this.style.display='none'">
+      <img class="rc-banner-skull hidden" id="rcBannerSkull" src="/images/misc/icon_skull.jfif" alt="" onerror="this.style.display='none'">
       <div class="rc-scrim"></div>
       <div class="rc-eyebrow" id="rcReportId">RUN-000</div>
       <div class="rc-map-name" id="rcMapName">—</div>
@@ -736,6 +737,16 @@ function sortedRounds(list){
   });
 }
 
+function mapThumbHTML(r){
+  const isDeath = Number(r.money) === 0;
+  return `
+    <div class="map-thumb-wrap">
+      <img class="map-thumb" src="${mapImgSrc(r.map)}" alt="" loading="lazy" onerror="this.remove()">
+      ${isDeath ? `<img class="map-thumb-skull" src="/images/misc/icon_skull.jfif" alt="" loading="lazy" onerror="this.remove()">` : ''}
+    </div>
+  `;
+}
+
 function tableHTML(list, opts){
   opts = opts || {};
   const editable = opts.editable !== false;
@@ -747,7 +758,7 @@ function tableHTML(list, opts){
       <td>${r.number}</td>
       <td>${formatDate(r.date)}</td>
       <td>${r.time||''}</td>
-      <td><div class="cell-with-icon"><img class="map-thumb" src="${mapImgSrc(r.map)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.map)}</div></td>
+      <td><div class="cell-with-icon">${mapThumbHTML(r)}${escapeHTML(r.map)}</div></td>
       <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
@@ -916,6 +927,10 @@ function openRoundCard(round, opts){
   const bannerImg = $('#rcBannerImg');
   bannerImg.style.display = '';
   bannerImg.src = mapImgSrc(round.map);
+
+  const bannerSkull = $('#rcBannerSkull');
+  if(bannerSkull){
+  bannerSkull.classList.toggle('hidden', Number(round.money) !== 0);
 
   const badge = $('#rcConditionBadge');
   badge.style.display = '';

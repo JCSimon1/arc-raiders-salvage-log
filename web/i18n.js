@@ -108,7 +108,7 @@ const translations = {
     thPercent: '%',
     numberLocale: 'en-US', dateLocale: 'en-GB',
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-    tickerLabel: 'BACKED BY',
+    tickerLabel: 'SUPPORTED BY',
     lootTitle: 'Loot Stash',
     thItem: 'Item', thPrice: 'Price', thAmount: 'Amount', thSum: 'Sum',
     lootTotalLabel: 'TOTAL STASH VALUE',
