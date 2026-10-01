@@ -343,6 +343,7 @@ const FALLBACK_CONFIG = {
   maps: [],
   companyLogos: [],
   badges: null,
+  badgeRules: {},
   charts: { pieColors: ['rgba(247, 136, 47, 0.75)'] }
 };
 let CONFIG = FALLBACK_CONFIG;
@@ -364,7 +365,6 @@ async function loadConfig(){
   }
 }
 
-// Zentrale Regel: ab wann gilt eine Runde als Tod?
 const isDeath = r => Number(r.money) <= CONFIG.ui.deathMoneyThreshold;
 
 // ---------- Badges (Weekly / Monthly Achievements) ----------
@@ -1478,17 +1478,12 @@ function renderDistribution(){
   $('#tableConditionDist').innerHTML = distTableHTML(condEntries, 'condition');
 }
 
-// ---------- Badges (Weekly / Monthly) ----------
-const BADGE_GRINDER_MIN = { week: 10, month: 30 };
-const BADGE_MIN_ROUNDS = 3; // für Deathless / Über dem Schnitt
-
 function dateKey(dt){
   return dt.getFullYear() + '-' +
     String(dt.getMonth()+1).padStart(2,'0') + '-' +
     String(dt.getDate()).padStart(2,'0');
 }
 
-// Liefert [startKey, endKey) als YYYY-MM-DD-Strings (Woche: Mo–So, lokale Zeit)
 function periodRange(kind, ref){
   const y = ref.getFullYear(), m = ref.getMonth(), d = ref.getDate();
   if(kind === 'month'){
@@ -1503,36 +1498,57 @@ function periodStartKey(kind, dateStr){
   return periodRange(kind, new Date(y, m-1, d))[0];
 }
 
+function badgeMin(cfg, kind, fallback){
+  const m = cfg.minRounds;
+  if(m !== null && typeof m === 'object') return Number(m[kind]) || fallback;
+  return m == null ? fallback : Number(m);
+}
+
 function computeBadges(kind){
+  const rulesCfg = CONFIG.badgeRules || {};
   const [startKey, endKey] = periodRange(kind, new Date());
   const inPeriod = rounds.filter(r => r.date && r.date >= startKey && r.date < endKey);
   if(inPeriod.length === 0) return [];
 
-  const badges = [];
   const cur = statsFor(inPeriod);
   const all = statsFor(rounds);
 
-  // Rekord-Run: Allzeit-Bestwert ($ oder XP) liegt in diesem Zeitraum
-  const bestMoney = topRounds('money', 1)[0];
-  const bestXP = topRounds('xp', 1)[0];
-  const hasRecord = [bestMoney, bestXP].some(r =>
-    r && (Number(r.money) > 0 || Number(r.xp) > 0) && inPeriod.some(p => p.id === r.id));
-  if(hasRecord) badges.push('record');
+  const rules = {
+    record(){
+      const best = [topRounds('money', 1)[0], topRounds('xp', 1)[0]];
+      return best.some(r => r && (Number(r.money) > 0 || Number(r.xp) > 0) &&
+        inPeriod.some(p => p.id === r.id)) ? {} : null;
+    },
+    deathless(cfg){
+      const n = badgeMin(cfg, kind, 3);
+      return cur.count >= n && cur.deaths === 0 ? { n } : null;
+    },
+    grinder(cfg){
+      const n = badgeMin(cfg, kind, 10);
+      return cur.count >= n ? { n } : null;
+    },
+    aboveAvg(cfg){
+      const n = badgeMin(cfg, kind, 3);
+      const metrics = cfg.metrics || ['money', 'xp'];
+      const ok = (metrics.includes('money') && cur.avgMoney > all.avgMoney) ||
+                 (metrics.includes('xp') && cur.avgXP > all.avgXP);
+      return cur.count >= n && ok ? { n } : null;
+    },
+    best(cfg){
+      const groups = groupBy(rounds.filter(r => r.date), r => periodStartKey(kind, r.date));
+      if(groups.size < (cfg.minPeriods || 2) || cur.totalMoney <= 0) return null;
+      const maxTotal = Math.max(...[...groups.values()].map(l => statsFor(l).totalMoney));
+      return cur.totalMoney >= maxTotal ? {} : null;
+    }
+  };
 
-  if(cur.count >= BADGE_MIN_ROUNDS && cur.deaths === 0) badges.push('deathless');
-  if(cur.count >= BADGE_GRINDER_MIN[kind]) badges.push('grinder');
-
-  if(cur.count >= BADGE_MIN_ROUNDS && (cur.avgMoney > all.avgMoney || cur.avgXP > all.avgXP)){
-    badges.push('aboveAvg');
-  }
-
-  // Bester Zeitraum: höchster Gesamtverdienst aller Wochen/Monate
-  const groups = groupBy(rounds.filter(r => r.date), r => periodStartKey(kind, r.date));
-  if(groups.size >= 2 && cur.totalMoney > 0){
-    const maxTotal = Math.max(...[...groups.values()].map(l => statsFor(l).totalMoney));
-    if(cur.totalMoney >= maxTotal) badges.push('best');
-  }
-  return badges;
+  return Object.keys(rulesCfg).flatMap(key => {
+    const cfg = rulesCfg[key];
+    if(!cfg || cfg.enabled === false || !rules[key]) return [];
+    if(cfg.periods && !cfg.periods.includes(kind)) return [];
+    const result = rules[key](cfg);
+    return result ? [{ key, n: result.n }] : [];
+  });
 }
 
 function renderBadgeList(elId, kind){
@@ -1543,8 +1559,8 @@ function renderBadgeList(elId, kind){
     el.innerHTML = `<span class="badge-none">${t('badgeNone')}</span>`;
     return;
   }
-  el.innerHTML = badges.map(key => {
-    const tip = t('badgeTip_' + key).replace('{n}', BADGE_GRINDER_MIN[kind]);
+  el.innerHTML = badges.map(({key, n}) => {
+    const tip = t('badgeTip_' + key).replace('{n}', n ?? '');
     return `<span class="badge-chip" title="${escapeHTML(tip)}">
       <img src="/images/misc/badge_${key}.webp" alt="" onerror="this.remove()">
       ${escapeHTML(t('badge_' + key))}

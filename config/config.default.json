@@ -46,6 +46,13 @@
     "Tanoo_Logo.webp",
     "Vigorosa_Logo.webp"
   ],
+  "badgeRules": {
+  "record":    { "enabled": true, "periods": ["week", "month"] },
+  "deathless": { "enabled": true, "periods": ["week", "month"], "minRounds": 3 },
+  "grinder":   { "enabled": true, "periods": ["week", "month"], "minRounds": { "week": 10, "month": 30 } },
+  "aboveAvg":  { "enabled": true, "periods": ["week", "month"], "minRounds": 3, "metrics": ["money", "xp"] },
+  "best":      { "enabled": true, "periods": ["week", "month"], "minPeriods": 2 }
+  },
   "badges": {
     "money":  { "bronze": 100000, "silver": 250000, "gold": 500000, "platinum": 1000000 },
     "xp":     { "bronze": 50000,  "silver": 100000, "gold": 200000, "platinum": 400000 },
