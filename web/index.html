@@ -1207,7 +1207,8 @@ function updateHsToggleLabels(){
     const metric = btn.dataset.metric;
     const listId = metric === 'money' ? 'hsMoneyList' : 'hsXPList';
     const isOpen = document.getElementById(listId).classList.contains('open');
-    btn.textContent = isOpen ? t('hsHideTop5') : t('hsShowTop5');
+    const key = isOpen ? 'hsHideTopN' : 'hsShowTopN';
+    btn.textContent = t(key).replace('{n}', CONFIG.ui.highscoreTopN);
   });
 }
 
