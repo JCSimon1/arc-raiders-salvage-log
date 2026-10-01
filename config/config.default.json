@@ -1,0 +1,96 @@
+{
+  "ui": {
+    "defaultLanguage": null,
+    "listPageSize": 20,
+    "recentRows": 6,
+    "highscoreTopN": 10,
+    "distributionTopN": 5,
+    "topRunFactor": 1.2,
+    "deathMoneyThreshold": 0,
+    "tickerSeconds": 40
+  },
+  "maps": [
+    "Dam Battlegrounds",
+    "Buried City",
+    "Spaceport",
+    "Blue Gate",
+    "Stella Montis",
+    "Riven Tides"
+  ],
+  "companyLogos": [
+    "J_Kozma_Ventures_Logo.webp",
+    "Armata_Logo.webp",
+    "Arqzian_Logo.webp",
+    "Astraventuro_Logo.webp",
+    "Avantale_Circular_Logo.webp",
+    "Avantale_Logo.webp",
+    "Convinio_Logo.webp",
+    "Enelica_Logo.webp",
+    "Erma_Cora_Logo.webp",
+    "Galleria_Soldanella_Logo.webp",
+    "Guardia_Logo.webp",
+    "Istituto_Alessia_Pavanelli_Logo.webp",
+    "Jiangsu_Romagna_Logo.webp",
+    "Lanza_Logo.webp",
+    "Lotto_Logo.webp",
+    "Mantikor_Logo.webp",
+    "Milae_Analyz_Logo.webp",
+    "Nexafuel_Logo.webp",
+    "Popet_Logo.webp",
+    "Rojalid_Logo.webp",
+    "Saetta_Logo.webp",
+    "Sogoslanda_Logo.webp",
+    "Stella_Montis_Logo.webp",
+    "Su_Durante_Logo.webp",
+    "Supracosta_Logo.webp",
+    "Tanoo_Logo.webp",
+    "Vigorosa_Logo.webp"
+  ],
+  "badges": {
+    "money":  { "bronze": 100000, "silver": 250000, "gold": 500000, "platinum": 1000000 },
+    "xp":     { "bronze": 50000,  "silver": 100000, "gold": 200000, "platinum": 400000 },
+    "rounds": { "bronze": 10,     "silver": 25,     "gold": 50,     "platinum": 100 },
+    "weeklyScale": 0.25
+  },
+  "charts": {
+    "pieColors": [
+      "rgba(107, 122, 143, 0.75)",
+      "rgba(247, 136, 47, 0.75)",
+      "rgba(247, 195, 49, 0.75)",
+      "rgba(220, 199, 170, 0.75)",
+      "rgba(199, 175, 107, 0.75)",
+      "rgba(172, 183, 174, 0.75)",
+      "rgba(254, 218, 106, 0.75)",
+      "rgba(58, 70, 96, 0.75)"
+    ]
+  },
+  "steam": { "cacheSeconds": 300 },
+  "lootCatalog": [
+    { "key": "matriarchreactor",   "name": "Matriarch Reactor",  "price": 11000 },
+    { "key": "queenreactor",       "name": "Queen Reactor",      "price": 11000 },
+    { "key": "assessormatrix",     "name": "Assessor Matrix",    "price": 5000 },
+    { "key": "bastioncell",        "name": "Bastion Cell",       "price": 3000 },
+    { "key": "bombadiercell",      "name": "Bombadier Cell",     "price": 3000 },
+    { "key": "leaperpulseunit",    "name": "Leaper Pulse Unit",  "price": 3000 },
+    { "key": "rocketeerdriver",    "name": "Rocketeer Driver",   "price": 3000 },
+    { "key": "turbinecompressor",  "name": "Turbine Compressor", "price": 5000 },
+    { "key": "vaporizerregulator", "name": "Vaporizer Regulator","price": 6000 }
+  ],
+  "ranks": [
+    { "key": "none",          "name": "None" },
+    { "key": "rookie1",       "name": "Rookie I" },
+    { "key": "rookie2",       "name": "Rookie II" },
+    { "key": "rookie3",       "name": "Rookie III" },
+    { "key": "tryhard1",      "name": "Tryhard I" },
+    { "key": "tryhard2",      "name": "Tryhard II" },
+    { "key": "tryhard3",      "name": "Tryhard III" },
+    { "key": "wildcard1",     "name": "Wildcard I" },
+    { "key": "wildcard2",     "name": "Wildcard II" },
+    { "key": "wildcard3",     "name": "Wildcard III" },
+    { "key": "daredevil1",    "name": "Daredevil I" },
+    { "key": "daredevil2",    "name": "Daredevil II" },
+    { "key": "daredevil3",    "name": "Daredevil III" },
+    { "key": "hotshot",       "name": "Hotshot" },
+    { "key": "cantinalegend", "name": "Cantina Legend" }
+  ]
+}

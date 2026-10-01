@@ -8,6 +8,7 @@ All requests/responses use `application/json`. There is no authentication — th
   - [Table of contents](#table-of-contents)
   - [Health](#health)
     - [`GET /api/health`](#get-apihealth)
+    - [GET /api/config](#get-apiconfig)
   - [Rounds](#rounds)
     - [`GET /api/rounds`](#get-apirounds)
     - [`POST /api/rounds`](#post-apirounds)
@@ -35,6 +36,16 @@ Used by the container healthcheck (`wget --spider`).
 ```json
 { "ok": true }
 ```
+
+---
+
+### GET /api/config
+
+Returns the frontend part of the merged configuration (defaults + `config/config.json`).
+
+Response: `{ ui, maps, companyLogos, badges, charts }`
+
+`lootCatalog`, `ranks` and `steam` are used server-side only: loot and ranks are exposed via `/api/loot` and `/api/settings`, and `steam` never leaves the server.
 
 ---
 
