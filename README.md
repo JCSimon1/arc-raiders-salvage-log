@@ -36,6 +36,7 @@ Self-hosted web app for tracking Arc Raiders rounds (map, condition, currency, a
   - [Quick Start](#quick-start)
     - [First start](#first-start)
     - [Environment variables](#environment-variables)
+  - [Configuration](#configuration)
   - [Architecture](#architecture)
   - [API](#api)
   - [Steam Integration](#steam-integration)
@@ -79,6 +80,9 @@ arc-raiders-salvage-log/
 │   ├── Dockerfile
 │   ├── package.json
 │   └── server.js
+├── config
+│   ├── config.default.json   # shipped defaults, updated with every release
+│   └── config.json           # optional, your overrides (git-ignored)
 ├── docs
 │   ├── screenshots
 │   └── api.md
@@ -129,6 +133,53 @@ Configured via `.env` (copy from `.env.example`):
 | `IMAGE_MOUNT` | No | Host path mounted read-only into the web container at `/usr/share/nginx/html/images`. Should contain `conditions/`, `maps/`, `ranks/`, `companies/` and `misc/` subfolders. Defaults to `./images`. |
 | `STEAM_API_KEY` | No | Your Steam Web API key from the [Steam dev portal](https://steamcommunity.com/dev/apikey). Enables the Steam profile card. |
 | `STEAM_ID` | No | Your 64-bit SteamID (steamID64), retrievable via [steamid.io](https://steamid.io). Required together with `STEAM_API_KEY`. |
+
+---
+## Configuration
+
+App settings (maps, loot prices, ranks, ticker logos, UI limits, badge thresholds, chart colors) live in JSON files in `config/`, not in the source code.
+
+| File | Purpose |
+| ---- | ------- |
+| `config/config.default.json` | Shipped with the repository. Updated with every `git pull`. **Do not edit.** |
+| `config/config.json` | Optional. Contains only the values you want to change. Git-ignored, so updates never conflict with it. |
+
+`config.json` is deep-merged over the defaults: objects are merged key by key, **arrays are replaced completely** (e.g. a custom `companyLogos` list replaces the default list).
+
+Example `config/config.json`:
+
+```json
+{
+  "ui": { "recentRows": 10, "defaultLanguage": "en" },
+  "maps": ["Dam Battlegrounds", "Spaceport"]
+}
+```
+
+The API reads the files at startup. After a change, restart the API (no rebuild required):
+
+```bash
+docker compose restart api
+```
+
+Invalid JSON or missing required fields stop the API with an error message (see `docker compose logs api`) instead of failing at runtime.
+
+| Key | Description |
+| --- | ----------- |
+| `ui.defaultLanguage` | `"de"`, `"en"` or `null` (browser language). Only used until the user picks a language. |
+| `ui.listPageSize` | Rows per page in the full run list. |
+| `ui.recentRows` | Rows in the "Recent runs" table. |
+| `ui.highscoreTopN` | Entries in the highscore lists. |
+| `ui.distributionTopN` | Slices in the condition chart before the rest is grouped as "Others". |
+| `ui.topRunFactor` | A run counts as "Top Run" if its money is at least this factor times your average. |
+| `ui.deathMoneyThreshold` | A run with money at or below this value counts as a death. |
+| `ui.tickerSeconds` | Duration of one ticker loop. |
+| `maps` | Suggestions in the map field of the entry form. |
+| `companyLogos` | File names in `images/companies/` shown in the ticker. |
+| `badges` | Thresholds for bronze/silver/gold/platinum per metric (`money`, `xp`, `rounds`) and `weeklyScale` for weekly goals. |
+| `charts.pieColors` | Colors of the distribution charts. |
+| `lootCatalog` | Loot items (`key`, `name`, `price`). Prices are synced on API start; stored amounts are kept. |
+| `ranks` | Trials ranks (`key` = file name in `images/ranks/`, `name`). |
+| `steam.cacheSeconds` | Cache duration of the Steam profile (server-side only, never sent to the browser). |
 
 ---
 ## Architecture
