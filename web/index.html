@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arc Raiders Salvage Log</title>
+<link rel="icon" type="image/png" href="/images/favicon.png">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 </head>
-<link rel="icon" type="image/png" href="/images/favicon.png">
 <body>
 <div class="shell">
 
@@ -85,14 +85,7 @@
         <div class="field">
           <label for="f-map" data-i18n="labelMap"></label>
           <input list="mapOptions" id="f-map" required>
-          <datalist id="mapOptions">
-            <option value="Dam Battlegrounds">
-            <option value="Buried City">
-            <option value="Spaceport">
-            <option value="Blue Gate">
-            <option value="Stella Montis">
-            <option value="Riven Tides">
-          </datalist>
+          <datalist id="mapOptions"></datalist>
         </div>
         <div class="field">
           <label for="f-condition" data-i18n="labelCondition"></label>
@@ -305,53 +298,78 @@
   </div>
 </div>
 
-<script src="i18n.js"></script>							   
+<script src="i18n.js"></script>
 <script>
 const API = '/api/rounds';
 const LOOT_API = '/api/loot';
 const SETTINGS_API = '/api/settings';
+const CONFIG_API = '/api/config';
 let rounds = [];
 let loot = [];
 let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
 let listPage = 1;
-const LIST_PAGE_SIZE = 20;
 let rankCatalog = [];
 let currentRank = null;
 let rcCurrentRound = null;
 
 const $ = sel => document.querySelector(sel);
-const COMPANY_LOGOS = [
-  'J_Kozma_Ventures_Logo.webp',
-  'Armata_Logo.webp',
-  'Arqzian_Logo.webp',
-  'Astraventuro_Logo.webp',
-  'Avantale_Circular_Logo.webp',
-  'Avantale_Logo.webp',
-  'Convinio_Logo.webp',
-  'Enelica_Logo.webp',
-  'Erma_Cora_Logo.webp',
-  'Galleria_Soldanella_Logo.webp',
-  'Guardia_Logo.webp',
-  'Istituto_Alessia_Pavanelli_Logo.webp',
-  'J_Kozma_Ventures_Logo.webp',
-  'Jiangsu_Romagna_Logo.webp',
-  'Lanza_Logo.webp',
-  'Lotto_Logo.webp',
-  'Mantikor_Logo.webp',
-  'Milae_Analyz_Logo.webp',
-  'Nexafuel_Logo.webp',
-  'Popet_Logo.webp',
-  'Rojalid_Logo.webp',
-  'Saetta_Logo.webp',
-  'Sogoslanda_Logo.webp',
-  'Stella_Montis_Logo.webp',
-  'Su_Durante_Logo.webp',
-  'Supracosta_Logo.webp',
-  'Tanoo_Logo.webp',
-  'Vigorosa_Logo.webp'
-];
+
+// ---------- Config (kommt von /api/config, siehe config/config.default.json) ----------
+const FALLBACK_CONFIG = {
+  ui: {
+    defaultLanguage: null,
+    listPageSize: 20,
+    recentRows: 6,
+    highscoreTopN: 10,
+    distributionTopN: 5,
+    topRunFactor: 1.2,
+    deathMoneyThreshold: 0,
+    tickerSeconds: 40
+  },
+  maps: [],
+  companyLogos: [],
+  badges: null,
+  charts: { pieColors: ['rgba(247, 136, 47, 0.75)'] }
+};
+let CONFIG = FALLBACK_CONFIG;
+
+async function loadConfig(){
+  try{
+    const res = await fetch(CONFIG_API);
+    if(!res.ok) throw new Error('config load failed');
+    const data = await res.json();
+    // fehlende Teile mit Fallback auffüllen, damit die UI nie an undefined scheitert
+    CONFIG = {
+      ...FALLBACK_CONFIG,
+      ...data,
+      ui: { ...FALLBACK_CONFIG.ui, ...(data.ui || {}) },
+      charts: { ...FALLBACK_CONFIG.charts, ...(data.charts || {}) }
+    };
+  }catch(err){
+    CONFIG = FALLBACK_CONFIG;
+  }
+}
+
+// Zentrale Regel: ab wann gilt eine Runde als Tod?
+const isDeath = r => Number(r.money) <= CONFIG.ui.deathMoneyThreshold;
+
+// ---------- Badges (Weekly / Monthly Achievements) ----------
+const BADGE_TIERS = ['bronze', 'silver', 'gold', 'platinum'];
+
+// metric: 'money' | 'xp' | 'rounds'; period: 'monthly' | 'weekly'
+// Liefert die höchste erreichte Stufe oder null.
+function badgeFor(metric, value, period){
+  const thresholds = CONFIG.badges && CONFIG.badges[metric];
+  if(!thresholds) return null;
+  const scale = period === 'weekly' ? (CONFIG.badges.weeklyScale || 1) : 1;
+  let reached = null;
+  for(const tier of BADGE_TIERS){
+    if(value >= thresholds[tier] * scale) reached = tier;
+  }
+  return reached;
+}
 
 let currentLang = localStorage.getItem('arclog-lang') || (navigator.language.startsWith('de') ? 'de' : 'en');
 
@@ -411,13 +429,22 @@ function companyDisplayName(filename){
 
 function renderTicker(){
   const track = $('#tickerTrack');
-  if(!track || COMPANY_LOGOS.length === 0) return;
-  const itemHTML = COMPANY_LOGOS.map(file => `
-    <img src="/images/companies/${file}" alt="${escapeHTML(companyDisplayName(file))}"
+  const logos = CONFIG.companyLogos || [];
+  if(!track || logos.length === 0) return;
+  track.style.animationDuration = CONFIG.ui.tickerSeconds + 's';
+  const itemHTML = logos.map(file => `
+    <img src="/images/companies/${encodeURIComponent(file)}" alt="${escapeHTML(companyDisplayName(file))}"
          title="${escapeHTML(companyDisplayName(file))}" loading="lazy" onerror="this.remove()">
   `).join('');
   // zweimal rendern für nahtlosen Loop
   track.innerHTML = itemHTML + itemHTML;
+}
+
+// ---------- Map-Vorschläge im Formular ----------
+function renderMapOptions(){
+  const list = $('#mapOptions');
+  if(!list) return;
+  list.innerHTML = (CONFIG.maps || []).map(m=>`<option value="${escapeHTML(m)}">`).join('');
 }
 
 // ---------- API ----------
@@ -749,11 +776,10 @@ function sortedRounds(list){
 }
 
 function mapThumbHTML(r){
-  const isDeath = Number(r.money) === 0;
   return `
     <div class="map-thumb-wrap">
       <img class="map-thumb" src="${mapImgSrc(r.map)}" alt="" loading="lazy" onerror="this.remove()">
-      ${isDeath ? `<img class="map-thumb-skull" src="/images/misc/icon_skull.webp" alt="" loading="lazy" onerror="this.remove()">` : ''}
+      ${isDeath(r) ? `<img class="map-thumb-skull" src="/images/misc/icon_skull.webp" alt="" loading="lazy" onerror="this.remove()">` : ''}
     </div>
   `;
 }
@@ -792,7 +818,7 @@ function escapeHTML(s){
 }
 
 function renderRecentTable(){
-  const recent = sortedRounds(rounds).slice(0,6);
+  const recent = sortedRounds(rounds).slice(0, CONFIG.ui.recentRows);
   $('#recentTableWrap').innerHTML = tableHTML(recent);
   bindEditButtons('#recentTableWrap');
   bindDeleteButtons('#recentTableWrap');
@@ -821,11 +847,12 @@ function renderFullTable(){
   });
   list = sortedRounds(list);
 
-  const totalPages = Math.max(1, Math.ceil(list.length / LIST_PAGE_SIZE));
+  const pageSize = CONFIG.ui.listPageSize;
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
   if(listPage > totalPages) listPage = totalPages;
   if(listPage < 1) listPage = 1;
-  const start = (listPage - 1) * LIST_PAGE_SIZE;
-  const pageItems = list.slice(start, start + LIST_PAGE_SIZE);
+  const start = (listPage - 1) * pageSize;
+  const pageItems = list.slice(start, start + pageSize);
 
   $('#fullTableWrap').innerHTML = tableHTML(pageItems);
   bindEditButtons('#fullTableWrap');
@@ -941,7 +968,7 @@ function openRoundCard(round, opts){
 
   const bannerSkull = $('#rcBannerSkull');
   if(bannerSkull){
-  bannerSkull.classList.toggle('hidden', Number(round.money) !== 0);
+    bannerSkull.classList.toggle('hidden', !isDeath(round));
   }
 
   const badge = $('#rcConditionBadge');
@@ -952,7 +979,7 @@ function openRoundCard(round, opts){
   rcDeltaLine($('#rcDeltaMoney'), Number(round.money) || 0, avgMoney, 'rcDeltaMoneyOver', 'rcDeltaMoneyUnder');
   rcDeltaLine($('#rcDeltaXP'), Number(round.xp) || 0, avgXP, 'rcDeltaXPOver', 'rcDeltaXPUnder');
 
-  const isTop = avgMoney > 0 && (Number(round.money) || 0) >= avgMoney * 1.2;
+  const isTop = avgMoney > 0 && (Number(round.money) || 0) >= avgMoney * CONFIG.ui.topRunFactor;
   card.classList.toggle('rc-top-run', isTop);
 
   if(opts.skipAnimation){
@@ -1089,7 +1116,7 @@ function statsFor(list){
   const count = list.length;
   const totalMoney = list.reduce((s,r)=>s+(Number(r.money)||0),0);
   const totalXP = list.reduce((s,r)=>s+(Number(r.xp)||0),0);
-  const deaths = list.filter(r=>Number(r.money)===0).length;
+  const deaths = list.filter(isDeath).length;
   return {
     count, totalMoney, totalXP, deaths,
     avgMoney: count? totalMoney/count : 0,
@@ -1124,7 +1151,7 @@ function topRounds(metric, n){
 }
 
 function renderHighscoreCard(metric, valueId, detailsId, listId, fmt, bgId){
-  const top = topRounds(metric, 10);
+  const top = topRounds(metric, CONFIG.ui.highscoreTopN);
   const valueEl = document.getElementById(valueId);
   const detailsEl = document.getElementById(detailsId);
   const listEl = document.getElementById(listId);
@@ -1340,28 +1367,18 @@ function drawBarChart(canvasId, labels, datasets){
 }
 
 // ---------- Distribution (pie charts) ----------
-const PIE_COLORS = [
-  'rgba(107, 122, 143, 0.75)',
-  'rgba(247, 136, 47, 0.75)',
-  'rgba(247, 195, 49, 0.75)',
-  'rgba(220, 199, 170, 0.75)',
-  'rgba(199, 175, 107, 0.75)',
-  'rgba(172, 183, 174, 0.75)',
-  'rgba(254, 218, 106, 0.75)',
-  'rgba(58, 70, 96, 0.75)'
-];
-
 function drawPieChart(canvasId, labels, data){
   const ctx = document.getElementById(canvasId);
   if(charts[canvasId]) charts[canvasId].destroy();
   if(labels.length===0) return;
+  const colors = CONFIG.charts.pieColors;
   charts[canvasId] = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels,
       datasets: [{
         data,
-        backgroundColor: labels.map((_,i)=>PIE_COLORS[i % PIE_COLORS.length]),
+        backgroundColor: labels.map((_,i)=>colors[i % colors.length]),
         borderWidth: 0,
         borderRadius: 6,
         spacing: 4,
@@ -1443,7 +1460,7 @@ function renderDistribution(){
   const condGroups = groupBy(rounds, r=>r.condition||'—');
   const condEntriesAll = [...condGroups.entries()].map(([key,list])=>({key, count:list.length}))
     .sort((a,b)=>b.count-a.count);
-  const condEntries = topNWithOthers(condEntriesAll, 5);
+  const condEntries = topNWithOthers(condEntriesAll, CONFIG.ui.distributionTopN);
   drawPieChart('chartConditionDist', condEntries.map(e=>e.key), condEntries.map(e=>e.count));
   $('#tableConditionDist').innerHTML = distTableHTML(condEntries, 'condition');
 }
@@ -1470,7 +1487,12 @@ function refreshAll(){
 
 // ---------- Init ----------
 (async function init(){
+  await loadConfig();   // zuerst: alles Weitere hängt von CONFIG ab
+  if(!localStorage.getItem('arclog-lang') && CONFIG.ui.defaultLanguage){
+    currentLang = CONFIG.ui.defaultLanguage;
+  }
   applyStaticTranslations();
+  renderMapOptions();
   populateFilterOptions();
   prefillForm();
   renderTicker();
