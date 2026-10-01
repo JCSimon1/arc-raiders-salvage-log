@@ -28,6 +28,18 @@
   </header>
 
   <div class="profile-bar">
+    <div class="profile-card" id="badgeCard">
+      <div class="badge-groups">
+        <div class="badge-group">
+          <div class="profile-card-label" data-i18n="badgeWeekLabel"></div>
+          <div class="badge-list" id="badgesWeek"></div>
+      </div>
+    <div class="badge-group">
+      <div class="profile-card-label" data-i18n="badgeMonthLabel"></div>
+      <div class="badge-list" id="badgesMonth"></div>
+    </div>
+  </div>
+</div>
     <div class="profile-card" id="rankCard">
       <div class="profile-card-info">
         <div class="profile-card-label" data-i18n="profileRankCardLabel"></div>
@@ -1466,6 +1478,85 @@ function renderDistribution(){
   $('#tableConditionDist').innerHTML = distTableHTML(condEntries, 'condition');
 }
 
+// ---------- Badges (Weekly / Monthly) ----------
+const BADGE_GRINDER_MIN = { week: 10, month: 30 };
+const BADGE_MIN_ROUNDS = 3; // für Deathless / Über dem Schnitt
+
+function dateKey(dt){
+  return dt.getFullYear() + '-' +
+    String(dt.getMonth()+1).padStart(2,'0') + '-' +
+    String(dt.getDate()).padStart(2,'0');
+}
+
+// Liefert [startKey, endKey) als YYYY-MM-DD-Strings (Woche: Mo–So, lokale Zeit)
+function periodRange(kind, ref){
+  const y = ref.getFullYear(), m = ref.getMonth(), d = ref.getDate();
+  if(kind === 'month'){
+    return [dateKey(new Date(y, m, 1)), dateKey(new Date(y, m+1, 1))];
+  }
+  const dow = (ref.getDay() + 6) % 7; // Montag = 0
+  return [dateKey(new Date(y, m, d - dow)), dateKey(new Date(y, m, d - dow + 7))];
+}
+
+function periodStartKey(kind, dateStr){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return periodRange(kind, new Date(y, m-1, d))[0];
+}
+
+function computeBadges(kind){
+  const [startKey, endKey] = periodRange(kind, new Date());
+  const inPeriod = rounds.filter(r => r.date && r.date >= startKey && r.date < endKey);
+  if(inPeriod.length === 0) return [];
+
+  const badges = [];
+  const cur = statsFor(inPeriod);
+  const all = statsFor(rounds);
+
+  // Rekord-Run: Allzeit-Bestwert ($ oder XP) liegt in diesem Zeitraum
+  const bestMoney = topRounds('money', 1)[0];
+  const bestXP = topRounds('xp', 1)[0];
+  const hasRecord = [bestMoney, bestXP].some(r =>
+    r && (Number(r.money) > 0 || Number(r.xp) > 0) && inPeriod.some(p => p.id === r.id));
+  if(hasRecord) badges.push('record');
+
+  if(cur.count >= BADGE_MIN_ROUNDS && cur.deaths === 0) badges.push('deathless');
+  if(cur.count >= BADGE_GRINDER_MIN[kind]) badges.push('grinder');
+
+  if(cur.count >= BADGE_MIN_ROUNDS && (cur.avgMoney > all.avgMoney || cur.avgXP > all.avgXP)){
+    badges.push('aboveAvg');
+  }
+
+  // Bester Zeitraum: höchster Gesamtverdienst aller Wochen/Monate
+  const groups = groupBy(rounds.filter(r => r.date), r => periodStartKey(kind, r.date));
+  if(groups.size >= 2 && cur.totalMoney > 0){
+    const maxTotal = Math.max(...[...groups.values()].map(l => statsFor(l).totalMoney));
+    if(cur.totalMoney >= maxTotal) badges.push('best');
+  }
+  return badges;
+}
+
+function renderBadgeList(elId, kind){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const badges = computeBadges(kind);
+  if(badges.length === 0){
+    el.innerHTML = `<span class="badge-none">${t('badgeNone')}</span>`;
+    return;
+  }
+  el.innerHTML = badges.map(key => {
+    const tip = t('badgeTip_' + key).replace('{n}', BADGE_GRINDER_MIN[kind]);
+    return `<span class="badge-chip" title="${escapeHTML(tip)}">
+      <img src="/images/misc/badge_${key}.webp" alt="" onerror="this.remove()">
+      ${escapeHTML(t('badge_' + key))}
+    </span>`;
+  }).join('');
+}
+
+function renderBadges(){
+  renderBadgeList('badgesWeek', 'week');
+  renderBadgeList('badgesMonth', 'month');
+}
+
 // ---------- Global refresh ----------
 function updateDatalists(){
   const conds = [...new Set(rounds.map(r=>r.condition).filter(Boolean))].sort();
@@ -1478,6 +1569,7 @@ function refreshAll(){
   $('#deathCountVal').textContent = s.deaths;
   $('#totalMoneyVal').textContent = fmtMoney(s.totalMoney);
   $('#totalXPVal').textContent = fmtXP(s.totalXP);
+  renderBadges();
   renderRecentTable();
   updateDatalists();
   if($('#view-list').classList.contains('active')) renderFullTable();

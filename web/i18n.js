@@ -69,7 +69,15 @@ const translations = {
     rcClose: 'SCHLIESSEN ✕',
     rcEditBtn: 'Bearbeiten',
     statDeaths: 'TODE', headerDeathsLabel: 'TODE',
-    rcArchiveBtn: 'Archivieren'
+    rcArchiveBtn: 'Archivieren',
+    badgeWeekLabel: 'DIESE WOCHE', badgeMonthLabel: 'DIESER MONAT', badgeNone: '—',
+    badge_record: 'Rekord-Run', badge_deathless: 'Deathless', badge_grinder: 'Grinder',
+    badge_aboveAvg: 'Über dem Schnitt', badge_best: 'Bester Zeitraum',
+    badgeTip_record: 'Dein Allzeit-Bestwert ($ oder XP) liegt in diesem Zeitraum',
+    badgeTip_deathless: 'Mindestens 3 Runden und kein Tod',
+    badgeTip_grinder: 'Mindestens {n} Runden in diesem Zeitraum',
+    badgeTip_aboveAvg: 'Ø $ oder Ø XP liegt über deinem Gesamt-Ø',
+    badgeTip_best: 'Höchster Gesamtverdienst aller bisherigen Zeiträume',
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -141,6 +149,14 @@ const translations = {
     rcClose: 'CLOSE ✕',
     rcEditBtn: 'Edit',
     statDeaths: 'DEATHS', headerDeathsLabel: 'DEATHS',
-    rcArchiveBtn: 'Archive'
+    rcArchiveBtn: 'Archive',
+    badgeWeekLabel: 'THIS WEEK', badgeMonthLabel: 'THIS MONTH', badgeNone: '—',
+    badge_record: 'Record Run', badge_deathless: 'Deathless', badge_grinder: 'Grinder',
+    badge_aboveAvg: 'Above Average', badge_best: 'Best Period',
+    badgeTip_record: 'Your all-time best ($ or XP) happened in this period',
+    badgeTip_deathless: 'At least 3 runs and no deaths',
+    badgeTip_grinder: 'At least {n} runs in this period',
+    badgeTip_aboveAvg: 'Avg $ or avg XP is above your overall average',
+    badgeTip_best: 'Highest total earnings of all periods so far',
   }
 };

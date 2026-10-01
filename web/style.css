@@ -705,3 +705,18 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   z-index:2;
   pointer-events:none;
 }
+.badge-groups{display:flex;gap:24px;flex-wrap:wrap;}
+.badge-group{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.badge-list{display:flex;gap:6px;flex-wrap:wrap;max-width:300px;}
+.badge-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;
+  color:var(--accent);
+  background:var(--panel-alt);border:1px solid var(--accent-dim);
+  border-radius:var(--radius);padding:3px 8px;
+  cursor:default;
+}
+.badge-chip img{width:16px;height:16px;object-fit:contain;}
+.badge-none{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-faint);
+}
