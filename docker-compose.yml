@@ -38,6 +38,7 @@ services:
     build: ./api
     init: true
     environment:
+      CONFIG_DIR: /config
       DATABASE_URL: postgres://arclog:${POSTGRES_PASSWORD:-arclog}@db:5432/arclog
       STEAM_API_KEY: ${STEAM_API_KEY:-}
       STEAM_ID: ${STEAM_ID:-}
@@ -60,6 +61,8 @@ services:
           memory: 256M
         reservations:
           memory: 64M
+    volumes:
+      - ./config:/config:ro
 
   web:
     build:
