@@ -1124,7 +1124,7 @@ function topRounds(metric, n){
 }
 
 function renderHighscoreCard(metric, valueId, detailsId, listId, fmt, bgId){
-  const top = topRounds(metric, 5);
+  const top = topRounds(metric, 10);
   const valueEl = document.getElementById(valueId);
   const detailsEl = document.getElementById(detailsId);
   const listEl = document.getElementById(listId);
