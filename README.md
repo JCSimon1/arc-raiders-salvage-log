@@ -37,6 +37,7 @@ Self-hosted web app for tracking Arc Raiders rounds (map, condition, currency, a
     - [First start](#first-start)
     - [Environment variables](#environment-variables)
   - [Configuration](#configuration)
+    - [Badge rules](#badge-rules)
   - [Architecture](#architecture)
   - [API](#api)
   - [Steam Integration](#steam-integration)
@@ -176,12 +177,49 @@ Invalid JSON or missing required fields stop the API with an error message (see 
 | `maps` | Suggestions in the map field of the entry form. |
 | `companyLogos` | File names in `images/companies/` shown in the ticker. |
 | `badges` | Thresholds for bronze/silver/gold/platinum per metric (`money`, `xp`, `rounds`) and `weeklyScale` for weekly goals. |
+| `badgeRules` | Rules for the weekly/monthly badges in the profile bar, see [Badge rules](#badge-rules). |
 | `charts.pieColors` | Colors of the distribution charts. |
 | `lootCatalog` | Loot items (`key`, `name`, `price`). Prices are synced on API start; stored amounts are kept. |
 | `ranks` | Trials ranks (`key` = file name in `images/ranks/`, `name`). |
 | `steam.cacheSeconds` | Cache duration of the Steam profile (server-side only, never sent to the browser). |
 
 ---
+### Badge rules
+ 
+The profile bar shows badges for the **current week** (Mon–Sun) and the **current month**. They are calculated in the browser from your logged runs, so no extra database tables or API endpoints are needed. The badge types are fixed in the code; the `badgeRules` key controls which are active, for which periods, and their thresholds. The order of the keys is the display order.
+ 
+| Badge | Awarded when | Options |
+| ----- | ------------ | ------- |
+| `record` | Your all-time best run ($ or XP) happened in the period. | `enabled`, `periods` |
+| `deathless` | At least `minRounds` runs in the period and no death. | `enabled`, `periods`, `minRounds` |
+| `grinder` | At least `minRounds` runs in the period. | `enabled`, `periods`, `minRounds` |
+| `aboveAvg` | At least `minRounds` runs and avg. $ or avg. XP is above your overall average. | `enabled`, `periods`, `minRounds`, `metrics` |
+| `best` | The period has the highest total earnings of all weeks/months so far. | `enabled`, `periods`, `minPeriods` |
+ 
+| Option | Description |
+| ------ | ----------- |
+| `enabled` | `false` disables the badge. |
+| `periods` | Array with `"week"` and/or `"month"`. |
+| `minRounds` | A number, or an object per period, e.g. `{ "week": 10, "month": 30 }`. |
+| `metrics` | For `aboveAvg`: `"money"`, `"xp"` or both. |
+| `minPeriods` | For `best`: minimum number of periods with data before the badge can be awarded. |
+ 
+Default configuration:
+ 
+```json
+"badgeRules": {
+  "record":    { "enabled": true, "periods": ["week", "month"] },
+  "deathless": { "enabled": true, "periods": ["week", "month"], "minRounds": 3 },
+  "grinder":   { "enabled": true, "periods": ["week", "month"], "minRounds": { "week": 10, "month": 30 } },
+  "aboveAvg":  { "enabled": true, "periods": ["week", "month"], "minRounds": 3, "metrics": ["money", "xp"] },
+  "best":      { "enabled": true, "periods": ["week", "month"], "minPeriods": 2 }
+}
+```
+ 
+Badge labels and tooltips are translated in `web/i18n.js` (`badge_*`, `badgeTip_*`). Optional icons are described under [Images](#images).
+ 
+---
+
 ## Architecture
 
 Functionality of the docker containers:
@@ -225,7 +263,7 @@ You can supply your own images for maps, conditions, ranks and sponsor logos. Ad
   * If no logos are present, the ticker is not displayed.
 * **Misc** — `images/misc/`
   * Currently used for `icon_skull.webp`, shown on runs logged with $0 earned ("deaths").
-
+  * Optional badge icons: `badge_record.webp`, `badge_deathless.webp`, `badge_grinder.webp`, `badge_aboveAvg.webp`, `badge_best.webp`. If an icon is missing, only the badge text is displayed.
 ---
 
 ## Backing Up Data
