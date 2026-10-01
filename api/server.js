@@ -1,6 +1,56 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+
+const CONFIG_DIR = process.env.CONFIG_DIR || '/config';
+
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+function deepMerge(base, override) {
+  const out = { ...base };
+  for (const [k, v] of Object.entries(override || {})) {
+    out[k] = isObj(v) && isObj(base[k]) ? deepMerge(base[k], v) : v;
+  }
+  return out;
+}
+
+function readJson(file, required) {
+  const p = path.join(CONFIG_DIR, file);
+  if (!fs.existsSync(p)) {
+    if (required) throw new Error(`Config-Datei fehlt: ${p}`);
+    return {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (err) {
+    throw new Error(`${file} ist kein gültiges JSON: ${err.message}`);
+  }
+}
+
+function validateConfig(c) {
+  if (!Array.isArray(c.lootCatalog) ||
+      !c.lootCatalog.every(i => i.key && i.name && Number.isFinite(i.price))) {
+    throw new Error('Config: lootCatalog braucht key, name und numerischen price je Eintrag.');
+  }
+  if (!Array.isArray(c.ranks) || !c.ranks.every(r => r.key && r.name)) {
+    throw new Error('Config: ranks braucht key und name je Eintrag.');
+  }
+  if (!Array.isArray(c.companyLogos)) throw new Error('Config: companyLogos muss ein Array sein.');
+  for (const m of ['money', 'xp', 'rounds']) {
+    const b = c.badges && c.badges[m];
+    if (!b || !['bronze', 'silver', 'gold', 'platinum'].every(t => Number.isFinite(b[t]))) {
+      throw new Error(`Config: badges.${m} braucht bronze/silver/gold/platinum als Zahlen.`);
+    }
+  }
+}
+
+const CONFIG = deepMerge(readJson('config.default.json', true), readJson('config.json', false));
+validateConfig(CONFIG);
+
+const LOOT_CATALOG = CONFIG.lootCatalog;
+const RANK_CATALOG = CONFIG.ranks;
+
 
 const app = express();
 app.use(cors());
@@ -38,41 +88,6 @@ const SCHEMA = `
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 `;
-
-// Statischer Item-Katalog. Preise hier pflegen, wenn sich das Spiel-Balancing ändert -
-// beim nächsten Start werden name/price synchronisiert, ohne die erfasste amount zu überschreiben.
-const LOOT_CATALOG = [
-  { key: 'matriarchreactor',    name: 'Matriarch Reactor',    price: 11000 },
-  { key: 'queenreactor',        name: 'Queen Reactor',        price: 11000 },
-  { key: 'assessormatrix',      name: 'Assessor Matrix',      price: 5000 },
-  { key: 'bastioncell',         name: 'Bastion Cell',         price: 3000 },
-  { key: 'bombadiercell',       name: 'Bombadier Cell',       price: 3000 },
-  { key: 'leaperpulseunit',     name: 'Leaper Pulse Unit',    price: 3000 },
-  { key: 'rocketeerdriver',     name: 'Rocketeer Driver',     price: 3000 },
-  { key: 'turbinecompressor',   name: 'Turbine Compressor',   price: 5000 },
-  { key: 'vaporizerregulator',  name: 'Vaporizer Regulator',  price: 6000 }
-];
-
-// Statischer Rang-Katalog für die Trials-Rangauswahl im Profil-Bereich.
-// key = Dateiname (ohne .webp) unter /images/ranks/. Passe Reihenfolge/Namen/Keys
-// gern an deine eigenen Logo-Dateien an - muss nicht 1:1 zum Spiel passen.
-const RANK_CATALOG = [
-  { key: 'none',           name: 'None' },
-  { key: 'rookie1',        name: 'Rookie I' },
-  { key: 'rookie2',        name: 'Rookie II' },
-  { key: 'rookie3',        name: 'Rookie III' },
-  { key: 'tryhard1',       name: 'Tryhard I' },
-  { key: 'tryhard2',       name: 'Tryhard II' },
-  { key: 'tryhard3',       name: 'Tryhard III' },
-  { key: 'wildcard1',      name: 'Wildcard I' },
-  { key: 'wildcard2',      name: 'Wildcard II' },
-  { key: 'wildcard3',      name: 'Wildcard III' },
-  { key: 'daredevil1',     name: 'Daredevil I' },
-  { key: 'daredevil2',     name: 'Daredevil II' },
-  { key: 'daredevil3',     name: 'Daredevil III' },
-  { key: 'hotshot',        name: 'Hotshot' },
-  { key: 'cantinalegend',  name: 'Cantina Legend' }
-];
 
 async function seedLootCatalog() {
   for (const item of LOOT_CATALOG) {
@@ -126,6 +141,11 @@ function toLootApi(row) {
 }
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+app.get('/api/config', (req, res) => {
+  const { ui, maps, companyLogos, badges, charts } = CONFIG;
+  res.json({ ui, maps, companyLogos, badges, charts });
+});
 
 app.get('/api/rounds', async (req, res) => {
   try {
@@ -279,13 +299,9 @@ app.put('/api/settings/rank', async (req, res) => {
   }
 });
 
-// ---------- Steam-Profil ----------
-// Nur aktiv, wenn STEAM_API_KEY und STEAM_ID gesetzt sind. Der Key verlässt
-// niemals den Server - das Frontend bekommt nur das aufbereitete Ergebnis.
-
 const STEAM_API_KEY = process.env.STEAM_API_KEY || '';
 const STEAM_ID = process.env.STEAM_ID || '';
-const STEAM_CACHE_MS = 5 * 60 * 1000;
+const STEAM_CACHE_MS = (CONFIG.steam.cacheSeconds || 300) * 1000;
 let steamProfileCache = { data: null, ts: 0 };
 
 function steamConfigured() {
