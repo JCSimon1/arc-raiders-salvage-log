@@ -767,33 +767,3 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   .steam-loader svg{animation-duration:4s;}
   .steam-loader path{animation-duration:4s;}
 }
-
-/* Hintergrundbild: langsames Hochschieben */
-.tc-hero-img{
-  transform:scale(1.12) translateY(0);
-  transition:transform 1.2s ease-out, filter 1.2s ease-out;
-  will-change:transform;
-}
-
-/* Grid-Karten: beim Hover */
-@media (hover:hover){
-  .tc-slot:hover .tc-hero-img{
-    transform:scale(1.12) translateY(-5%);
-    filter:saturate(.9) brightness(.65);
-    transition:transform 6s cubic-bezier(.2,.6,.2,1), filter 4s ease-out;
-  }
-}
-
-.tc-overlay.open .tc-modal .tc-hero-img{
-  animation:tc-drift 8s cubic-bezier(.2,.6,.2,1) .2s forwards;
-}
-@keyframes tc-drift{
-  from{transform:scale(1.12) translateY(0);filter:saturate(.9) brightness(.8);}
-  to{transform:scale(1.12) translateY(-5%);filter:saturate(.9) brightness(.65);}
-}
-
-@media (prefers-reduced-motion:reduce){
-  .tc-hero-img,
-  .tc-slot:hover .tc-hero-img{transition:none;transform:scale(1.12);}
-  .tc-overlay.open .tc-modal .tc-hero-img{animation:none;}
-}
