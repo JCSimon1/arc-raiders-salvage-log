@@ -64,6 +64,12 @@
           <span id="steamStatusText"></span>
         </div>
       </div>
+      <div class="steam-loader" id="steamLoader" role="status" aria-label="Loading">
+        <svg viewBox="0 0 50 50" aria-hidden="true">
+          <path pathLength="100"
+                d="M25 25 A1.5 1.5 0 0 1 28 25 A4.5 4.5 0 0 1 19 25 A7.5 7.5 0 0 1 34 25 A10.5 10.5 0 0 1 13 25 A13.5 13.5 0 0 1 40 25 A16.5 16.5 0 0 1 7 25"/>
+        </svg>
+      </div>
       <img class="profile-card-avatar is-empty" id="steamAvatar" alt="" onerror="this.classList.add('is-empty')">
     </div>
   </div>
@@ -629,15 +635,28 @@ const STEAM_STATUS_CLASSES = [
 
 let lastSteamData = null;
 
+const STEAM_FLAG = 'arclog-steam-configured';
+
+function showSteamLoading(){
+  const card = $('#steamCard');
+  if(!card) return;
+  card.classList.add('is-loading');
+  card.classList.remove('hidden');
+}
+
 function hideSteamCard(){
   const card = $('#steamCard');
-  if(card) card.classList.add('hidden');
+  if(card){
+    card.classList.remove('is-loading');   // NEU
+    card.classList.add('hidden');
+  }
 }
 
 function showSteamCard(data){
   lastSteamData = data;
   const card = $('#steamCard');
   if(!card) return;
+  card.classList.remove('is-loading');  
   card.classList.remove('hidden');
 
   $('#steamName').textContent = data.name || '—';
@@ -666,11 +685,19 @@ function showSteamCard(data){
 }
 
 async function loadSteamProfile(){
+  // Spinner nur zeigen, wenn Steam bei einem früheren Besuch konfiguriert war
+  if(localStorage.getItem(STEAM_FLAG)) showSteamLoading();
   try{
     const res = await fetch('/api/steam/profile');
     if(!res.ok){ hideSteamCard(); return; }
     const data = await res.json();
-    if(!data.configured || data.error){ hideSteamCard(); return; }
+    if(!data.configured){
+      localStorage.removeItem(STEAM_FLAG);
+      hideSteamCard();
+      return;
+    }
+    if(data.error){ hideSteamCard(); return; }
+    localStorage.setItem(STEAM_FLAG, '1');
     showSteamCard(data);
   }catch(err){
     hideSteamCard();
@@ -1747,11 +1774,12 @@ function refreshAll(){
 
 // ---------- Init ----------
 (async function init(){
-  await loadConfig();   // zuerst: alles Weitere hängt von CONFIG ab
+  await loadConfig();
   if(!localStorage.getItem('arclog-lang') && CONFIG.ui.defaultLanguage){
     currentLang = CONFIG.ui.defaultLanguage;
   }
   applyStaticTranslations();
+  loadSteamProfile()
   renderMapOptions();
   populateFilterOptions();
   prefillForm();
@@ -1771,7 +1799,6 @@ function refreshAll(){
   }
   renderProfile();
   refreshAll();
-  loadSteamProfile();
 })();
 </script>
 </body>

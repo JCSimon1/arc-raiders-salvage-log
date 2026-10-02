@@ -710,11 +710,12 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
 .badge-list{display:flex;gap:6px;flex-wrap:wrap;max-width:300px;}
 .badge-chip{
   display:inline-flex;align-items:center;gap:5px;
-  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;
   color:var(--accent);
   background:var(--panel-alt);border:1px solid var(--accent-dim);
   border-radius:var(--radius);padding:3px 8px;
   cursor:default;
+  filter:drop-shadow(0 0 2px rgba(232,163,61,0.5));
 }
 .badge-chip img{width:16px;height:16px;object-fit:contain;}
 .badge-none{
@@ -729,3 +730,40 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
 .sound-toggle input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;}
 .sound-volume{color:var(--text-muted);}
 .sound-volume input{accent-color:var(--accent);width:140px;cursor:pointer;}
+
+/* ---------- Steam Loader (Spiral) ---------- */
+.steam-loader{
+  display:none;
+  width:56px;height:56px;flex-shrink:0;
+  align-items:center;justify-content:center;
+}
+.steam-loader svg{
+  width:44px;height:44px;
+  animation:spiral-rotate 1.6s linear infinite;
+  filter:drop-shadow(0 0 6px rgba(92,139,143,0.55));
+}
+.steam-loader path{
+  fill:none;
+  stroke:var(--accent-2);
+  stroke-width:2.5;
+  stroke-linecap:round;
+  stroke-dasharray:35 65;
+  animation:spiral-dash 1.6s linear infinite;
+}
+@keyframes spiral-rotate{ to{ transform:rotate(360deg); } }
+@keyframes spiral-dash{
+  from{ stroke-dashoffset:0; }
+  to{ stroke-dashoffset:-100; }
+}
+
+/* Ladezustand der Steam-Karte: Label + Spinner, Rest ausblenden */
+#steamCard.is-loading .steam-loader{display:flex;}
+#steamCard.is-loading #steamAvatar,
+#steamCard.is-loading #steamName,
+#steamCard.is-loading #steamStatusRow{display:none;}
+#steamCard.is-loading .profile-card-info{align-self:center;}
+
+@media (prefers-reduced-motion: reduce){
+  .steam-loader svg{animation-duration:4s;}
+  .steam-loader path{animation-duration:4s;}
+}
