@@ -1,4 +1,5 @@
 /* Trophy Room: Monatskarten. Nutzt die Globals aus index.html
+/* Trophy Room: Monatskarten. Nutzt die Globals aus index.html
    (rounds, CONFIG, statsFor, groupBy, isDeath, sortedRounds, computeBadges, t, fmtMoney, ...). */
 (function(){
 
@@ -153,6 +154,9 @@ function heroHTML(s, full){
   const c = cfg();
   const v = c.imageVersion ? '?v=' + encodeURIComponent(c.imageVersion) : '';
   const { name, year } = monthParts(s);
+  const bgMap = (s.bestMap || s.favMap || {}).map;
+  const fallbackImg = IMG + v;
+  const bgImg = bgMap ? mapImgSrc(bgMap) : fallbackImg;
   let delta = '';
   if(s.deltaMoney != null){
     const pct = Math.round(Math.abs(s.deltaMoney) * 100);
@@ -165,7 +169,8 @@ function heroHTML(s, full){
   const title = full && s.title ? `<div class="tc-title-chip">${escapeHTML(t('tcTitle_' + s.title))}</div>` : '';
   return `
     <div class="tc-hero">
-      <img class="tc-hero-img" src="${IMG}${v}" alt="" onerror="this.style.display='none'">
+      <img class="tc-hero-img" src="${bgImg}" data-fb="${fallbackImg}" alt=""
+     onerror="if(this.dataset.fb && this.src.indexOf(this.dataset.fb)<0){this.src=this.dataset.fb}else{this.style.display='none'}">
       <div class="tc-scrim"></div>
       <div class="tc-eyebrow">${t('tcEyebrow')}</div>
       ${stamp}
