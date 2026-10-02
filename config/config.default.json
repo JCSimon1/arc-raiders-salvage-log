@@ -59,6 +59,13 @@
     "rounds": { "bronze": 10,     "silver": 25,     "gold": 50,     "platinum": 100 },
     "weeklyScale": 0.25
   },
+  "trophyRoom": {
+    "tiers": {
+      "money": { "bronze": 100000, "silver": 250000, "gold": 500000, "platinum": 1000000 },"minRounds": 10 },
+      "titles": { "luckyShare": 0.3, "grinderRounds": 40, "survivorRate": 0.9 },
+      "monthlyGoal": { "money": 400000 },
+      "imageVersion": null
+  },
   "charts": {
     "pieColors": [
       "rgba(107, 122, 143, 0.75)",

@@ -8,5 +8,7 @@ COPY fonts/ /usr/share/nginx/html/fonts/
 COPY fonts.css /usr/share/nginx/html/fonts.css
 COPY style.css /usr/share/nginx/html/style.css
 COPY i18n.js /usr/share/nginx/html/i18n.js
+COPY trophy.js /usr/share/nginx/html/trophy.js
+COPY trophy.css /usr/share/nginx/html/trophy.css
 
 RUN sed -i "s/%%VERSION%%/${APP_VERSION}/g" /usr/share/nginx/html/index.html

@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="/images/favicon.png">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="trophy.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 </head>
 <body>
@@ -80,6 +81,7 @@
     <button data-view="analysis" data-i18n="navAnalysis"></button>
     <button data-view="distribution" data-i18n="navDistribution"></button>
     <button data-view="loot" data-i18n="navLoot"></button>
+    <button data-view="trophy" data-i18n="navTrophy"></button>
     <button data-view="settings" data-i18n="navSettings"></button>
   </nav>
 
@@ -243,6 +245,10 @@
     </div>
   </div>
 
+  <div class="view" id="view-trophy">
+    <div class="tc-grid" id="tcGrid"></div>
+  </div>
+
   <div class="view" id="view-settings">
     <div class="panel">
       <h2 class="panel-title" data-i18n="settingsLanguageTitle"></h2>
@@ -329,6 +335,7 @@
 </div>
 
 <script src="i18n.js"></script>
+<script src="trophy.js"></script>
 <script>
 const API = '/api/rounds';
 const LOOT_API = '/api/loot';
@@ -710,6 +717,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
     if(btn.dataset.view==='list') renderFullTable();
     if(btn.dataset.view==='distribution') renderDistribution();
     if(btn.dataset.view==='loot') renderLoot();
+    if(btn.dataset.view==='trophy') renderTrophy();
   });
 });
 document.querySelectorAll('.sub-tabs button').forEach(btn=>{
@@ -1542,7 +1550,8 @@ function badgeMin(cfg, kind, fallback){
 
 function computeBadges(kind){
   const rulesCfg = CONFIG.badgeRules || {};
-  const [startKey, endKey] = periodRange(kind, new Date());
+  // ---------- old: const [startKey, endKey] = periodRange(kind, new Date()); ---------- 
+  const [startKey, endKey] = periodRange(kind, ref || new Date());
   const inPeriod = rounds.filter(r => r.date && r.date >= startKey && r.date < endKey);
   if(inPeriod.length === 0) return [];
 
@@ -1765,6 +1774,7 @@ function refreshAll(){
   if($('#view-analysis').classList.contains('active')) renderAnalysis();
   if($('#view-distribution').classList.contains('active')) renderDistribution();
   if($('#view-loot').classList.contains('active')) renderLoot();
+  if($('#view-trophy').classList.contains('active')) renderTrophy();
 }
 
 // ---------- Init ----------
