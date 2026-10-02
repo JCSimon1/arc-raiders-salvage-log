@@ -1548,9 +1548,8 @@ function badgeMin(cfg, kind, fallback){
   return m == null ? fallback : Number(m);
 }
 
-function computeBadges(kind){
+function computeBadges(kind, ref){
   const rulesCfg = CONFIG.badgeRules || {};
-  // ---------- old: const [startKey, endKey] = periodRange(kind, new Date()); ---------- 
   const [startKey, endKey] = periodRange(kind, ref || new Date());
   const inPeriod = rounds.filter(r => r.date && r.date >= startKey && r.date < endKey);
   if(inPeriod.length === 0) return [];
