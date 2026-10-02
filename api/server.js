@@ -143,7 +143,7 @@ function toLootApi(row) {
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.get('/api/config', (req, res) => {
-  const { ui, maps, companyLogos, badges, charts } = CONFIG;
+  const { ui, maps, companyLogos, badges, badgeRules, charts } = CONFIG;
   res.json({ ui, maps, companyLogos, badges, badgeRules, charts });
 });
 
