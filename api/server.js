@@ -144,7 +144,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.get('/api/config', (req, res) => {
   const { ui, maps, companyLogos, badges, badgeRules, charts } = CONFIG;
-  res.json({ ui, maps, companyLogos, badges, badgeRules, charts });
+  res.json({ ui, maps, companyLogos, badges, badgeRules, charts, steamConfigured: steamConfigured()  });
 });
 
 app.get('/api/rounds', async (req, res) => {

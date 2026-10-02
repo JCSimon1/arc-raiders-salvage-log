@@ -362,7 +362,8 @@ const FALLBACK_CONFIG = {
   companyLogos: [],
   badges: null,
   badgeRules: {},
-  charts: { pieColors: ['rgba(247, 136, 47, 0.75)'] }
+  charts: { pieColors: ['rgba(247, 136, 47, 0.75)'] },
+  steamConfigured: false
 };
 let CONFIG = FALLBACK_CONFIG;
 
@@ -685,19 +686,13 @@ function showSteamCard(data){
 }
 
 async function loadSteamProfile(){
-  // Spinner nur zeigen, wenn Steam bei einem früheren Besuch konfiguriert war
-  if(localStorage.getItem(STEAM_FLAG)) showSteamLoading();
+  if(!CONFIG.steamConfigured){ hideSteamCard(); return; }
+  showSteamLoading();
   try{
     const res = await fetch('/api/steam/profile');
     if(!res.ok){ hideSteamCard(); return; }
     const data = await res.json();
-    if(!data.configured){
-      localStorage.removeItem(STEAM_FLAG);
-      hideSteamCard();
-      return;
-    }
-    if(data.error){ hideSteamCard(); return; }
-    localStorage.setItem(STEAM_FLAG, '1');
+    if(!data.configured || data.error){ hideSteamCard(); return; }
     showSteamCard(data);
   }catch(err){
     hideSteamCard();
