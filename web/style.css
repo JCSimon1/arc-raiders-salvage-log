@@ -756,7 +756,6 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   to{ stroke-dashoffset:-100; }
 }
 
-/* Ladezustand der Steam-Karte: Label + Spinner, Rest ausblenden */
 #steamCard.is-loading .steam-loader{display:flex;}
 #steamCard.is-loading #steamAvatar,
 #steamCard.is-loading #steamName,
