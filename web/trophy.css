@@ -177,52 +177,53 @@
   .tc-stats.four{grid-template-columns:repeat(2,1fr);}
 }
 
-/* ---------- Tier-Glow hinter dem Modal ---------- */
-.tc-overlay{ overflow:hidden; }
-.tc-overlay[data-tier="bronze"]  { --glow:176,122,79; }
-.tc-overlay[data-tier="silver"]  { --glow:170,179,184; }
-.tc-overlay[data-tier="gold"]    { --glow:232,163,61; }
-.tc-overlay[data-tier="platinum"]{ --glow:143,208,212; }
-
-.tc-overlay[data-tier="bronze"]::before,
-.tc-overlay[data-tier="bronze"]::after,
-.tc-overlay[data-tier="silver"]::before,
-.tc-overlay[data-tier="silver"]::after,
-.tc-overlay[data-tier="gold"]::before,
-.tc-overlay[data-tier="gold"]::after,
-.tc-overlay[data-tier="platinum"]::before,
-.tc-overlay[data-tier="platinum"]::after{
-  content:'';
-  position:absolute;
-  left:50%; top:50%;
-  width:min(620px,110vw);
-  aspect-ratio:1;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(var(--glow),.55) 0%, rgba(var(--glow),0) 68%);
-  filter:blur(50px);
-  pointer-events:none;
-  will-change:transform, opacity;
+.tc-overlay{
+  position:fixed;inset:0;
+  background:rgba(10,12,13,.72);
+  backdrop-filter:blur(3px);
+  display:flex;                 /* align-items:center entfällt, das macht margin:auto am Modal */
+  padding:40px 20px;
+  overflow-y:auto;              /* NEU: Scrollen hier statt im Modal */
+  opacity:0;pointer-events:none;
+  transition:opacity .18s ease;
+  z-index:1000;
 }
-.tc-overlay[data-tier="platinum"]::before,
-.tc-overlay[data-tier="platinum"]::after,
-.tc-overlay[data-tier="gold"]::before,
-.tc-overlay[data-tier="gold"]::after{
-  background:radial-gradient(circle, rgba(var(--glow),.7) 0%, rgba(var(--glow),0) 68%);
+.tc-modal{
+  position:relative;
+  width:460px;max-width:100%;
+  margin:auto;                  /* NEU: zentriert, ohne oben abgeschnitten zu werden */
+  border-radius:6px;
+  transform:scale(.94);opacity:0;
+  transition:transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
 }
 
-.tc-overlay.open::before{ animation:tc-glow-a 7s ease-in-out infinite; }
-.tc-overlay.open::after { animation:tc-glow-b 9s ease-in-out infinite; }
+.tc-card{ --glow:139,148,154; }
+.tc-card.tc-tier-bronze  { --glow:176,122,79; }
+.tc-card.tc-tier-silver  { --glow:170,179,184; }
+.tc-card.tc-tier-gold    { --glow:232,163,61; }
+.tc-card.tc-tier-platinum{ --glow:143,208,212; }
 
-@keyframes tc-glow-a{
-  0%,100%{ transform:translate(-50%,-50%) translate(-34px,-22px) scale(1);    opacity:.55; }
-  50%    { transform:translate(-50%,-50%) translate(30px,26px)   scale(1.1);  opacity:.9; }
+.tc-overlay.open .tc-modal .tc-card{
+  animation:tc-float 4s ease-in-out .3s infinite;
 }
-@keyframes tc-glow-b{
-  0%,100%{ transform:translate(-50%,-50%) translate(38px,20px)   scale(1.05); opacity:.7; }
-  50%    { transform:translate(-50%,-50%) translate(-28px,-30px) scale(.92);  opacity:.4; }
+
+@keyframes tc-float{
+  0%,100%{
+    transform:translateY(0);
+    box-shadow:
+      0 0 0 1px var(--tier),
+      0 12px 24px rgba(0,0,0,.45),
+      0 0 30px rgba(var(--glow),.25);
+  }
+  50%{
+    transform:translateY(-14px);
+    box-shadow:
+      0 0 0 1px var(--tier),
+      0 34px 40px rgba(0,0,0,.25),
+      0 0 70px rgba(var(--glow),.55);
+  }
 }
 
 @media (prefers-reduced-motion:reduce){
-  .tc-overlay.open::before,
-  .tc-overlay.open::after{ animation:none; transform:translate(-50%,-50%); opacity:.6; }
+  .tc-overlay.open .tc-modal .tc-card{ animation:none; }
 }

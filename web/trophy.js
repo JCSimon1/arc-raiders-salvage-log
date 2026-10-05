@@ -305,7 +305,6 @@ function overlayEl(){
 function fillModal(){
   const s = cache.find(x => x.ym === openYm);
   if(!s){ closeModal(); return; }
-  overlayEl().dataset.tier = s.tier || '';
   document.getElementById('tcModal').innerHTML = cardHTML(s, true);
 }
 
