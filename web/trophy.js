@@ -1,6 +1,3 @@
-/* Trophy Room: Monatskarten. Nutzt die Globals aus index.html
-/* Trophy Room: Monatskarten. Nutzt die Globals aus index.html
-   (rounds, CONFIG, statsFor, groupBy, isDeath, sortedRounds, computeBadges, t, fmtMoney, ...). */
 (function(){
 
 // ---------- Übersetzungen (können später nach i18n.js verschoben werden) ----------
@@ -67,7 +64,6 @@ function cfg(){
 const tf = (key, vars) => Object.entries(vars || {}).reduce(
   (s, [k, v]) => s.replace('{' + k + '}', v), t(key));
 
-// ---------- Berechnung ----------
 function tierFor(total, count, c){
   if(count < c.tiers.minRounds) return null;
   let tier = null;
@@ -99,14 +95,12 @@ function buildSummaries(){
     const prev = idx > 0 ? stats.get(keys[idx - 1]) : null;
     const [y, m] = ym.split('-').map(Number);
 
-    // Deathless-Serie (chronologisch)
     let streak = 0, bestStreak = 0;
     for(const r of sortedRounds(list).reverse()){
       streak = isDeath(r) ? 0 : streak + 1;
       bestStreak = Math.max(bestStreak, streak);
     }
 
-    // Tage
     const byDay = groupBy(list, r => r.date);
     const days = new Date(y, m, 0).getDate();
     const dayCounts = Array.from({ length: days }, () => 0);
@@ -115,7 +109,6 @@ function buildSummaries(){
       .map(([day, l]) => ({ day, ...statsFor(l) }))
       .sort((a, b) => b.totalMoney - a.totalMoney)[0];
 
-    // Maps
     const byMap = [...groupBy(list, r => r.map || '—').entries()]
       .map(([map, l]) => ({ map, ...statsFor(l) }));
     const favMap = [...byMap].sort((a, b) => b.count - a.count)[0];
@@ -141,7 +134,6 @@ function buildSummaries(){
   return out.reverse(); // neuester zuerst
 }
 
-// ---------- Rendering ----------
 function monthParts(s){
   const d = new Date(Date.UTC(s.y, s.m - 1, 1));
   return {
@@ -292,7 +284,6 @@ function cardHTML(s, full){
     </div>`;
 }
 
-// ---------- Grid + Modal ----------
 let cache = [];
 let openYm = null;
 
@@ -314,6 +305,7 @@ function overlayEl(){
 function fillModal(){
   const s = cache.find(x => x.ym === openYm);
   if(!s){ closeModal(); return; }
+  overlayEl().dataset.tier = s.tier || '';
   document.getElementById('tcModal').innerHTML = cardHTML(s, true);
 }
 
