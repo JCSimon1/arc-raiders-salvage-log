@@ -81,7 +81,7 @@ const translations = {
     badgeTip_grinder: 'Mindestens {n} Runden in diesem Zeitraum',
     badgeTip_aboveAvg: 'Ø $ oder Ø XP liegt über deinem Gesamt-Ø',
     badgeTip_best: 'Höchster Gesamtverdienst aller bisherigen Zeiträume',
-    deleteHoldHint: 'Gedrückt halten zum Löschen'
+    deleteHoldHint: 'Gedrückt halten zum Löschen',
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -165,6 +165,6 @@ const translations = {
     badgeTip_grinder: 'At least {n} runs in this period',
     badgeTip_aboveAvg: 'Avg $ or avg XP is above your overall average',
     badgeTip_best: 'Highest total earnings of all periods so far',
-    deleteHoldHint: 'Press and hold to delete'
+    deleteHoldHint: 'Press and hold to delete',
   }
 };
