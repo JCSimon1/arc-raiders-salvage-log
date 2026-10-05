@@ -853,7 +853,7 @@ function tableHTML(list, opts){
       <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
-      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}">${t('delete')}</button></td>`:''}
+      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}"><span>${t('delete')}</span></button></td>`:''}
     </tr>
   `).join('');
   return `
@@ -947,22 +947,44 @@ function bindEditButtons(scopeSel){
   });
 }
 
+const HOLD_MS = 1000;
+
 function bindDeleteButtons(scopeSel){
   document.querySelectorAll(scopeSel+' .del').forEach(btn=>{
-    btn.addEventListener('click', async (e)=>{
+    let timer = null;
+
+    const cancel = ()=>{
+      clearTimeout(timer);
+      timer = null;
+      btn.classList.remove('holding');
+    };
+
+    const start = (e)=>{
+      if(e.button !== undefined && e.button !== 0) return;   // nur linke Maustaste
       e.stopPropagation();
-      try{
-        await deleteRound(btn.dataset.id);
-        if(editingId && String(editingId)===String(btn.dataset.id)){
-          exitEditMode();
+      btn.classList.add('holding');
+      timer = setTimeout(async ()=>{
+        timer = null;
+        try{
+          await deleteRound(btn.dataset.id);
+          if(editingId && String(editingId)===String(btn.dataset.id)) exitEditMode();
+          await loadRounds();
+          setStatus('ok');
+          refreshAll();
+        }catch(err){
+          btn.classList.remove('holding');
+          setStatus('err');
         }
-        await loadRounds();
-        setStatus('ok');
-        refreshAll();
-      }catch(err){
-        setStatus('err');
-      }
-    });
+      }, HOLD_MS);
+    };
+
+    btn.style.setProperty('--hold-ms', HOLD_MS + 'ms');
+    btn.addEventListener('pointerdown', start);
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => btn.addEventListener(ev, cancel));
+    btn.addEventListener('click', e => e.stopPropagation());   // verhindert Öffnen der Round Card
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    btn.addEventListener('keydown', e => { if((e.key===' '||e.key==='Enter') && !e.repeat) start(e); });
+    btn.addEventListener('keyup', e => { if(e.key===' '||e.key==='Enter') cancel(); });
   });
 }
 

@@ -234,6 +234,32 @@ td.actions button{
   font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:2px 6px;
 }
 td.actions button + button{margin-left:10px;}
+/* Hold-to-delete */
+td.actions button.del{
+  position:relative;overflow:hidden;
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:4px 10px;
+  color:var(--text-muted);
+  user-select:none;-webkit-user-select:none;
+  touch-action:none;               /* verhindert Scrollen/Long-Press-Menü beim Halten */
+  -webkit-touch-callout:none;
+}
+td.actions button.del::before{
+  content:'';
+  position:absolute;inset:0;
+  background:var(--negative);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .15s ease-out;   /* schnelles Zurücksetzen beim Loslassen */
+  z-index:0;
+}
+td.actions button.del.holding::before{
+  transform:scaleX(1);
+  transition:transform var(--hold-ms,1000ms) linear;
+}
+td.actions button.del > span{position:relative;z-index:1;}
+td.actions button.del:hover{color:var(--text);border-color:var(--negative);}
+td.actions button.del.holding{color:#fff;border-color:var(--negative);}
 td.actions button:hover{color:var(--accent);}
 td.actions button.del:hover{color:var(--negative);}
 .empty-state{
