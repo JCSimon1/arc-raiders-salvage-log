@@ -202,11 +202,11 @@
 .tc-card.tc-tier-silver  { --glow:170,179,184; }
 .tc-card.tc-tier-gold    { --glow:232,163,61; }
 .tc-card.tc-tier-platinum{ --glow:143,208,212; }
-
+ 
 .tc-overlay.open .tc-modal .tc-card{
   animation:tc-float 4s ease-in-out .3s infinite;
 }
-
+ 
 @keyframes tc-float{
   0%,100%{
     transform:translateY(0);
@@ -223,7 +223,13 @@
       0 0 70px rgba(var(--glow),.55);
   }
 }
-
+ 
 @media (prefers-reduced-motion:reduce){
-  .tc-overlay.open .tc-modal .tc-card{ animation:none; }
+  .tc-overlay.open .tc-modal .tc-tier{animation:none;}
+  .tc-overlay.open .tc-modal .tc-card{animation:none;}
+  .tc-slot,.tc-modal{transition:none;}
+}
+@media(max-width:720px){
+  .tc-grid{grid-template-columns:1fr;}
+  .tc-stats.four{grid-template-columns:repeat(2,1fr);}
 }
