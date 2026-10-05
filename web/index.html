@@ -853,7 +853,7 @@ function tableHTML(list, opts){
       <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
-      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}" title="${t('deleteHoldHint')}"><span>${t('delete')}</span></button></td>`:''}
+      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}" title="${t('deleteHoldHint')}"}><span>${t('delete')}</span></button></td>`:''}
     </tr>
   `).join('');
   return `

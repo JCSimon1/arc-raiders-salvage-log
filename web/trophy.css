@@ -177,24 +177,43 @@
   .tc-stats.four{grid-template-columns:repeat(2,1fr);}
 }
 
-.tc-overlay{
-  position:fixed;inset:0;
-  background:rgba(10,12,13,.72);
-  backdrop-filter:blur(3px);
-  display:flex;                 /* align-items:center entfällt, das macht margin:auto am Modal */
-  padding:40px 20px;
-  overflow-y:auto;              /* NEU: Scrollen hier statt im Modal */
-  opacity:0;pointer-events:none;
-  transition:opacity .18s ease;
-  z-index:1000;
+.tc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,13,.72);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+  z-index: 1000;
 }
-.tc-modal{
-  position:relative;
-  width:460px;max-width:100%;
-  margin:auto;                  /* NEU: zentriert, ohne oben abgeschnitten zu werden */
-  border-radius:6px;
-  transform:scale(.94);opacity:0;
-  transition:transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
+
+.tc-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tc-modal {
+  position: relative;
+  width: 460px;
+  max-width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  margin: auto;
+  border-radius: 6px;
+  transform: scale(.94);
+  opacity: 0;
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
+}
+
+.tc-overlay.open .tc-modal {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .tc-card{ --glow:139,148,154; }
@@ -203,9 +222,6 @@
 .tc-card.tc-tier-gold    { --glow:232,163,61; }
 .tc-card.tc-tier-platinum{ --glow:143,208,212; }
  
-.tc-overlay.open .tc-modal .tc-card{
-  animation:tc-float 4s ease-in-out .3s infinite;
-}
  
 @keyframes tc-float{
   0%,100%{

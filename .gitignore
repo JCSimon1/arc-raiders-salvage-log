@@ -5,6 +5,8 @@ node_modules/
 config/config.json
 /images/maps/*
 /images/conditions/*
+/.vscode
+settings.json
 !/images/maps/.gitkeep
 !/images/conditions/.gitkeep
 .backlog
