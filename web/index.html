@@ -430,8 +430,6 @@ function applyStaticTranslations(){
   document.documentElement.lang = currentLang;
   $('#langDE').classList.toggle('active', currentLang==='de');
   $('#langEN').classList.toggle('active', currentLang==='en');
-  // Entry-Panel-Titel und Submit-Button hängen vom Bearbeitungs-Modus ab,
-  // die generische data-i18n-Schleife oben setzt sie erstmal auf den Default zurück.
   $('#entryPanelTitle').textContent = editingId ? t('editTitle') : t('entryTitle');
   $('#submitBtn').textContent = editingId ? t('updateBtn') : t('submitBtn');
   updateHsToggleLabels();

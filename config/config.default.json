@@ -10,12 +10,13 @@
     "tickerSeconds": 40
   },
   "maps": [
-    "Dam Battlegrounds",
-    "Buried City",
-    "Spaceport",
     "Blue Gate",
-    "Stella Montis",
-    "Riven Tides"
+    "Buried City",
+    "Dam Battlegrounds", 
+    "Pendola Pass",
+    "Riven Tides",
+    "Spaceport",
+    "Stella Montis"
   ],
   "companyLogos": [
     "J_Kozma_Ventures_Logo.webp",

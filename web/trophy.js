@@ -1,6 +1,5 @@
 (function(){
 
-// ---------- Übersetzungen (können später nach i18n.js verschoben werden) ----------
 Object.assign(translations.de, {
   navTrophy: 'Trophy Room',
   tcEyebrow: 'TROPHY ROOM',
