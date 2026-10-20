@@ -16,17 +16,24 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
-body{
-  background:
-    radial-gradient(1200px 600px at 15% -10%, rgba(232,163,61,0.05), transparent),
-    radial-gradient(900px 500px at 100% 0%, rgba(92,139,143,0.06), transparent),
-    var(--bg);
-  color:var(--text);
-  font-family:'IBM Plex Sans', sans-serif;
-  min-height:100vh;
-  -webkit-font-smoothing:antialiased;
+body::before{
+  content:'';
+  position:fixed;
+  inset:-15%;                    /* Überstand, damit das Blur an den Rändern nicht ausfranst */
+  z-index:-1;
+  pointer-events:none;
+  background-color:var(--bg);    /* Basis, gegen die "screen" mischt */
+  background-image:
+    radial-gradient(ellipse 24% 28% at 52% 72%, rgba(255,214,140,.16) 0%, transparent 65%),                          /* heller Kern */
+    radial-gradient(ellipse 42% 55% at 70% 36%, rgba(92,139,143,.42) 0%, rgba(92,139,143,.08) 48%, transparent 72%), /* Teal */
+    radial-gradient(ellipse 50% 42% at 30% 52%, rgba(232,163,61,.40) 0%, rgba(138,100,40,.12) 48%, transparent 72%); /* Amber */
+  background-blend-mode:screen;
+  filter:blur(95px);
+  transform:translateZ(0);
 }
-::selection{background:var(--accent-dim);color:#fff;}
+@media (min-width:1024px){
+  body::before{ filter:blur(130px); }
+}
 
 .shell{max-width:1240px;margin:0 auto;padding:28px 20px 80px;}
 
@@ -140,12 +147,14 @@ header{
 }
 .settings-rank-row select:focus{border-color:var(--accent-2);}
 
+.nav-icon{width:16px;height:16px;}
 nav.tabs{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid var(--border);}
 nav.tabs button{
   background:none;border:none;color:var(--text-muted);
+  border-bottom:2px solid transparent;position:relative;top:1px;
+  display:inline-flex;align-items:center;gap:7px;
   font-family:'IBM Plex Sans',sans-serif;font-size:14.5px;font-weight:500;
   padding:10px 4px;margin-right:26px;cursor:pointer;
-  border-bottom:2px solid transparent;position:relative;top:1px;
   transition:color .15s ease, border-color .15s ease;
 }
 nav.tabs button:hover{color:var(--text);}
@@ -312,6 +321,14 @@ td.actions button.del:hover{color:var(--negative);}
   background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
   padding:16px 18px;
 }
+
+.icon{
+  width:1em;
+  height:1em;
+  flex-shrink:0;
+  vertical-align:-0.125em;
+}
+
 .hs-top{
   position:relative;
   margin:-16px -18px 0;

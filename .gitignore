@@ -10,4 +10,5 @@ settings.json
 !/images/maps/.gitkeep
 !/images/conditions/.gitkeep
 .backlog
+/web/icons-preview.html
 docker-compose.override.yml

@@ -11,6 +11,9 @@
   <a href="web/fonts/OFL.txt" target="_blank">
     <img src="https://img.shields.io/badge/fonts-SIL%20OFL%201.1-informational" alt="Fonts: SIL OFL 1.1">
   </a>
+  <a href="web/icons/LICENSE.txt" target="_blank">
+    <img src="https://img.shields.io/badge/icons-Lucide%20ISC-informational" alt="Icons: Lucide ISC">
+  </a>
 </p>
 
 ---
@@ -53,6 +56,8 @@ Self-hosted web app for tracking Arc Raiders rounds (map, condition, currency, a
     - [Distribution (Map / Condition)](#distribution-map--condition)
     - [Loot Tracker](#loot-tracker)
   - [License](#license)
+    - [Fonts](#fonts)
+    - [Icons](#icons)
 
 ---
 
@@ -341,6 +346,8 @@ Screenshots include local images that are not part of the repository. Those can 
 
 The code in this repository is licensed under **MIT** (see [LICENSE](LICENSE)).
 
+### Fonts
+
 The fonts bundled under `web/fonts/` and loaded via `web/fonts.css` are **not** covered by the MIT license — they are distributed separately under the **SIL Open Font License, Version 1.1**. Full license text and copyright holders: [web/fonts/OFL.txt](web/fonts/OFL.txt).
 
 | Font family | Copyright |
@@ -353,3 +360,13 @@ The fonts bundled under `web/fonts/` and loaded via `web/fonts.css` are **not** 
 | Prompt | © 2015 Cadson Demak |
 
 Per the OFL, these fonts may be used, embedded and redistributed (including as part of this project) but may not be sold on their own, and any modified version must remain under the OFL. Documents/pages produced *with* the fonts (i.e. the app itself) are not required to be OFL-licensed — only the font files themselves.
+
+### Icons
+
+
+
+| Icons | Copyright |
+| ----------- | --------- |
+| Icons | © 2026 Lucide Icons and Contributors|
+
+Full license text and copyright holders: [web/icons/LICENSE.txt](web/icons/LICENSE.txt).
