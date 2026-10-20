@@ -348,7 +348,9 @@ The code in this repository is licensed under **MIT** (see [LICENSE](LICENSE)).
 
 ### Fonts
 
-The fonts bundled under `web/fonts/` and loaded via `web/fonts.css` are **not** covered by the MIT license — they are distributed separately under the **SIL Open Font License, Version 1.1**. Full license text and copyright holders: [web/fonts/OFL.txt](web/fonts/OFL.txt).
+The fonts bundled under `web/fonts/` and loaded via `web/fonts.css` are **not** covered by the MIT license — they are distributed separately under the **SIL Open Font License, Version 1.1**. 
+
+Full license text and copyright holders: [web/fonts/OFL.txt](web/fonts/OFL.txt).
 
 | Font family | Copyright |
 | ----------- | --------- |
@@ -363,10 +365,11 @@ Per the OFL, these fonts may be used, embedded and redistributed (including as p
 
 ### Icons
 
+The icons loaded via `web/icons.js` are **not** covered by the MIT license — they are distributed separately under the **ISC License.
+
+Full license text and copyright holders: [web/icons/LICENSE.txt](web/icons/LICENSE.txt).
 
 
 | Icons | Copyright |
 | ----------- | --------- |
 | Icons | © 2026 Lucide Icons and Contributors|
-
-Full license text and copyright holders: [web/icons/LICENSE.txt](web/icons/LICENSE.txt).
