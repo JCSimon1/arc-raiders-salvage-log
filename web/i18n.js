@@ -1,7 +1,7 @@
 const translations = {
   de: {
     brandTag: 'RUNDENTRACKER',
-    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung', navLoot: 'Loot', navSettings: 'Profil',
+    navEntry: 'Erfassen', navList: 'Übersicht', navAnalysis: 'Auswertung', navDistribution: 'Verteilung', navLoot: 'Loot', navSettings: 'Settings',
     runCountLabel: 'RUNDEN GESAMT',
     headerRoundsLabel: 'RUNDEN', headerMoneyLabel: '$ GESAMT', headerXPLabel: 'XP GESAMT',
     entryTitle: 'Neue Runde eintragen',
@@ -82,10 +82,14 @@ const translations = {
     badgeTip_aboveAvg: 'Ø $ oder Ø XP liegt über deinem Gesamt-Ø',
     badgeTip_best: 'Höchster Gesamtverdienst aller bisherigen Zeiträume',
     deleteHoldHint: 'Gedrückt halten zum Löschen',
+    settingsDataTitle: 'Daten',
+    settingsExportHint: 'JSON enthält alles (Runden, Loot, Rang) und eignet sich als Backup. CSV enthält nur die Runden, z. B. für Excel.',
+    exportJson: 'Backup (JSON)',
+    exportCsv: 'Runden (CSV)',
   },
   en: {
     brandTag: 'RUN TRACKER',
-    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution', navLoot: 'Loot', navSettings: 'Profile',
+    navEntry: 'Log Run', navList: 'Overview', navAnalysis: 'Stats', navDistribution: 'Distribution', navLoot: 'Loot', navSettings: 'Settings',
     runCountLabel: 'TOTAL RUNS',
     headerRoundsLabel: 'RUNS', headerMoneyLabel: 'TOTAL $', headerXPLabel: 'TOTAL XP',
     entryTitle: 'Log a new run',
@@ -166,5 +170,9 @@ const translations = {
     badgeTip_aboveAvg: 'Avg $ or avg XP is above your overall average',
     badgeTip_best: 'Highest total earnings of all periods so far',
     deleteHoldHint: 'Press and hold to delete',
+    settingsDataTitle: 'Data',
+    settingsExportHint: 'JSON contains everything (runs, loot, rank) and works as a backup. CSV contains runs only, e.g. for Excel.',
+    exportJson: 'Backup (JSON)',
+    exportCsv: 'Runs (CSV)',
   }
 };

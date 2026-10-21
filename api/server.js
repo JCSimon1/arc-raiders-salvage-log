@@ -353,6 +353,61 @@ app.get('/api/steam/profile', async (req, res) => {
   }
 });
 
+const CSV_COLUMNS = ['number', 'date', 'time', 'map', 'condition', 'money', 'xp'];
+
+function csvCell(value, sep) {
+  const s = String(value ?? '');
+  return s.includes(sep) || /["\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+app.get('/api/export', async (req, res) => {
+  const format = req.query.format === 'csv' ? 'csv' : 'json';
+  const stamp = new Date().toISOString().slice(0, 10);
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM rounds ORDER BY round_date, round_time, round_number'
+    );
+    const rounds = rows.map(toApi).map(({ id, ...rest }) => rest);
+
+    if (format === 'csv') {
+      const sep = ';';
+      const lines = [
+        CSV_COLUMNS.join(sep),
+        ...rounds.map(r => CSV_COLUMNS.map(c => csvCell(r[c], sep)).join(sep))
+      ];
+      res.set({
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="arc-log-rounds-${stamp}.csv"`
+      });
+      return res.send('\uFEFF' + lines.join('\r\n') + '\r\n');
+    }
+
+    const [lootRes, rank] = await Promise.all([
+      pool.query('SELECT item_key, amount FROM loot_items ORDER BY item_key'),
+      getSetting('rank')
+    ]);
+
+    const payload = {
+      app: 'arc-log',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      rounds,
+      loot: lootRes.rows.map(r => ({ key: r.item_key, amount: r.amount })),
+      settings: { rank: rank || null }
+    };
+
+    res.set({
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="arc-log-backup-${stamp}.json"`
+    });
+    res.send(JSON.stringify(payload, null, 2));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Export fehlgeschlagen.' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 initDb()

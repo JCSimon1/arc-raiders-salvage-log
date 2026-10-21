@@ -312,7 +312,7 @@ Pushing a tag matching `v*.*.*` also triggers the `Release` GitHub Actions workf
 - Automatic death tracking (a run logged with $0 earned is flagged as a death)
 - Statistics
   - No. of rounds, deaths, total/avg. $ earned, total/avg. XP
-  - Top 5 highscores by money and by XP
+  - Top 10 highscores by money and by XP
   - Diagrams: by Map, by Condition, Monthly
 - Distribution view: rounds per map and per condition (donut charts)
 - Loot Stash: track owned quantities of key crafting materials with live total value
