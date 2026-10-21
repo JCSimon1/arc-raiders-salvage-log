@@ -300,6 +300,17 @@ td.actions button.del:hover{color:var(--negative);}
   font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 10px;border-radius:var(--radius);
 }
 
+.th-sort{
+  background:none;border:none;padding:0;cursor:pointer;
+  font:inherit;color:inherit;letter-spacing:inherit;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:color .15s ease;
+}
+.th-sort:hover{color:var(--text);}
+.th-sort.active{color:var(--accent);}
+.th-sort-arrow{font-size:9px;opacity:.6;}
+.th-sort.active .th-sort-arrow{opacity:1;}
+
 .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px;}
 .stat-card{
   background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);

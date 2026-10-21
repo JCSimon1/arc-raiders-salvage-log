@@ -82,11 +82,6 @@ const translations = {
     badgeTip_aboveAvg: 'Ø $ oder Ø XP liegt über deinem Gesamt-Ø',
     badgeTip_best: 'Höchster Gesamtverdienst aller bisherigen Zeiträume',
     deleteHoldHint: 'Gedrückt halten zum Löschen',
-    sortDefault: 'Sortierung: Datum (neueste zuerst)',
-    sortXPAsc: 'XP aufsteigend',
-    sortXPDesc: 'XP absteigend',
-    sortMoneyAsc: '$ aufsteigend',
-    sortMoneyDesc: '$ absteigend',
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -171,10 +166,5 @@ const translations = {
     badgeTip_aboveAvg: 'Avg $ or avg XP is above your overall average',
     badgeTip_best: 'Highest total earnings of all periods so far',
     deleteHoldHint: 'Press and hold to delete',
-    sortDefault: 'Sort: Date (newest first)',
-    sortXPAsc: 'XP ascending',
-    sortXPDesc: 'XP descending',
-    sortMoneyAsc: '$ ascending',
-    sortMoneyDesc: '$ descending',
   }
 };

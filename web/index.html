@@ -135,13 +135,6 @@
         <select id="filterMap"></select>
         <select id="filterCondition"></select>
         <input type="month" id="filterMonth">
-        <select id="sortOrder">
-          <option value="" data-i18n="sortDefault"></option>
-          <option value="xpAsc" data-i18n="sortXPAsc"></option>
-          <option value="xpDesc" data-i18n="sortXPDesc"></option>
-          <option value="moneyAsc" data-i18n="sortMoneyAsc"></option>
-          <option value="moneyDesc" data-i18n="sortMoneyDesc"></option>
-        </select>
         <button class="btn ghost" id="clearFilters" data-i18n="clearFilters"></button>
       </div>
       <div id="fullTableWrap"></div>
@@ -343,6 +336,7 @@ let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
 let listPage = 1;
+let listSort = { metric: null, dir: -1 }; 
 let rankCatalog = [];
 let currentRank = null;
 let rcCurrentRound = null;
@@ -811,8 +805,16 @@ function mapThumbHTML(r){
   `;
 }
 
+function sortTh(metric, label){
+  const active = listSort.metric === metric;
+  const arrow = active ? (listSort.dir === 1 ? '▲' : '▼') : '↕';
+  const aria = active ? (listSort.dir === 1 ? 'ascending' : 'descending') : 'none';
+  return `<th class="center" aria-sort="${aria}"><button type="button" class="th-sort${active ? ' active' : ''}" data-sort="${metric}">${label}<span class="th-sort-arrow">${arrow}</span></button></th>`;
+}
+
 function tableHTML(list, opts){
   opts = opts || {};
+  const sortable = opts.sortable === true;
   const editable = opts.editable !== false;
   if(list.length===0){
     return '<div class="empty-state">' + t('emptyState') + '</div>';
@@ -832,7 +834,7 @@ function tableHTML(list, opts){
   return `
     <table>
       <thead><tr>
-        <th>${t('thNumber')}</th><th>${t('thDate')}</th><th>${t('thTime')}</th><th>${t('thMap')}</th><th>${t('thCondition')}</th><th class="center">${t('thMoney')}</th><th class="center">${t('thXP')}</th>${editable?'<th></th>':''}
+        <th>${t('thNumber')}</th><th>${t('thDate')}</th><th>${t('thTime')}</th><th>${t('thMap')}</th><th>${t('thCondition')}</th>${sortable ? sortTh('money', t('thMoney')) : `<th class="center">${t('thMoney')}</th>`}${sortable ? sortTh('xp', t('thXP')) : `<th class="center">${t('thXP')}</th>`}${editable?'<th></th>':''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -873,11 +875,8 @@ function renderFullTable(){
     return true;
   });
   list = sortedRounds(list); 
-  const sortF = $('#sortOrder').value;
-  if(sortF){
-    const metric = sortF.startsWith('xp') ? 'xp' : 'money';
-    const dir = sortF.endsWith('Asc') ? 1 : -1;
-    list.sort((a, b) => dir * ((Number(a[metric]) || 0) - (Number(b[metric]) || 0)));
+  if(listSort.metric){
+    list.sort((a, b) => listSort.dir * ((Number(a[listSort.metric]) || 0) - (Number(b[listSort.metric]) || 0)));
   }
 
   const pageSize = CONFIG.ui.listPageSize;
@@ -887,7 +886,7 @@ function renderFullTable(){
   const start = (listPage - 1) * pageSize;
   const pageItems = list.slice(start, start + pageSize);
 
-  $('#fullTableWrap').innerHTML = tableHTML(pageItems);
+  $('#fullTableWrap').innerHTML = tableHTML(pageItems, { sortable: true });
   bindEditButtons('#fullTableWrap');
   bindDeleteButtons('#fullTableWrap');
   renderListPagination(totalPages, list.length);
@@ -970,10 +969,19 @@ function bindDeleteButtons(scopeSel){
 $('#filterMap').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#filterCondition').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#filterMonth').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
-$('#sortOrder').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
+$('#fullTableWrap').addEventListener('click', e=>{
+  const btn = e.target.closest('.th-sort');
+  if(!btn) return;
+  const m = btn.dataset.sort;
+  if(listSort.metric !== m)      listSort = { metric: m, dir: -1 };     // 1. Klick: absteigend
+  else if(listSort.dir === -1)   listSort = { metric: m, dir: 1 };      // 2. Klick: aufsteigend
+  else                           listSort = { metric: null, dir: -1 }; // 3. Klick: zurück
+  listPage = 1;
+  renderFullTable();
+});
 $('#clearFilters').addEventListener('click', ()=>{
   $('#filterMap').value=''; $('#filterCondition').value=''; $('#filterMonth').value='';
-  $('#sortOrder').value='';
+  listSort = { metric: null, dir: -1 };
   listPage = 1;
   renderFullTable();
 });
