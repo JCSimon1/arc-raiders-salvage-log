@@ -818,6 +818,40 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   stroke-dasharray:35 65;
   animation:spiral-dash 1.6s linear infinite;
 }
+
+.panel.danger-zone{
+  border-color:var(--negative);
+  box-shadow:0 0 0 1px rgba(193,80,63,.25), 0 0 30px rgba(193,80,63,.08);
+}
+.danger-zone .panel-title{
+  display:flex;align-items:center;gap:8px;
+  color:var(--negative);
+}
+.danger-zone .panel-title .icon{width:18px;height:18px;}
+
+.import-modes{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+.import-mode{
+  display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+  font-size:13.5px;color:var(--text);
+  padding:10px 12px;border:1px solid var(--border-soft);border-radius:var(--radius);
+  background:var(--panel-alt);
+}
+.import-mode:has(input:checked){border-color:var(--negative);}
+.import-mode input{accent-color:var(--negative);margin-top:3px;}
+.import-mode small{display:block;margin-top:2px;font-size:12px;color:var(--text-muted);}
+
+.import-file,.import-confirm{max-width:420px;margin-bottom:14px;}
+.import-preview{
+  margin-bottom:14px;padding:10px 12px;
+  border:1px dashed var(--negative);border-radius:var(--radius);
+  background:rgba(193,80,63,.08);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);
+  display:flex;flex-direction:column;gap:4px;
+}
+.import-confirm input:focus{border-color:var(--negative);box-shadow:0 0 0 3px rgba(193,80,63,.15);}
+
+.btn.danger{background:var(--negative);color:#fff;}
+
 @keyframes spiral-rotate{ to{ transform:rotate(360deg); } }
 @keyframes spiral-dash{
   from{ stroke-dashoffset:0; }

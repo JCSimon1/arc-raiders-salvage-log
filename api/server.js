@@ -54,6 +54,7 @@ const RANK_CATALOG = CONFIG.ranks;
 
 const app = express();
 app.use(cors());
+app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json());
 
 const pool = new Pool({
@@ -405,6 +406,144 @@ app.get('/api/export', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Export fehlgeschlagen.' });
+  }
+});
+
+// ---------- Import ----------
+
+const IMPORT_MAX_ROUNDS = 50000;
+const INT_MAX = 2147483647;
+
+function parseRound(r) {
+  if (!isObj(r)) return null;
+  const date = String(r.date ?? '');
+  const time = String(r.time ?? '').slice(0, 5);
+  const map = String(r.map ?? '').trim();
+  const condition = String(r.condition ?? '').trim();
+  const number = Number(r.number), money = Number(r.money), xp = Number(r.xp);
+
+  const d = new Date(date + 'T00:00:00Z');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(d.getTime()) ||
+      d.toISOString().slice(0, 10) !== date) return null;
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return null;
+  if (!map || !condition) return null;
+  for (const n of [number, money, xp]) {
+    if (!Number.isInteger(n) || Math.abs(n) > INT_MAX) return null;
+  }
+  return { number, date, time, map, condition, money, xp };
+}
+
+const roundKey = r => [r.date, r.time, r.number, r.map].join('|');
+
+app.post('/api/import', async (req, res) => {
+  const mode = req.query.mode;
+  if (mode !== 'merge' && mode !== 'replace') {
+    return res.status(400).json({ error: 'Ungültiger Modus.' });
+  }
+  const dryRun = req.query.dryRun === '1';
+  const data = req.body;
+
+  if (!isObj(data) || data.app !== 'arc-log' || !Array.isArray(data.rounds)) {
+    return res.status(400).json({ error: 'Keine gültige Arc-Log-Sicherung.' });
+  }
+  if (data.schemaVersion !== 1) {
+    return res.status(400).json({ error: 'Nicht unterstützte Schema-Version.' });
+  }
+  if (data.rounds.length > IMPORT_MAX_ROUNDS) {
+    return res.status(400).json({ error: `Maximal ${IMPORT_MAX_ROUNDS} Runden pro Import.` });
+  }
+
+  const valid = [];
+  const errors = [];
+  let invalid = 0;
+  data.rounds.forEach((raw, i) => {
+    const r = parseRound(raw);
+    if (r) valid.push(r);
+    else { invalid++; if (errors.length < 5) errors.push(i + 1); }
+  });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      'SELECT round_number, round_date, round_time, map FROM rounds'
+    );
+    const seen = new Set(
+      mode === 'merge' ? existing.rows.map(row => roundKey(toApi(row))) : []
+    );
+
+    const fresh = [];
+    let duplicates = 0;
+    for (const r of valid) {
+      const k = roundKey(r);
+      if (seen.has(k)) { duplicates++; continue; }
+      seen.add(k);
+      fresh.push(r);
+    }
+
+    if (mode === 'replace') await client.query('DELETE FROM rounds');
+
+    if (fresh.length) {
+      await client.query(
+        `INSERT INTO rounds (round_number, round_date, round_time, map, map_condition, money, xp)
+         SELECT * FROM unnest($1::int[], $2::date[], $3::time[], $4::text[], $5::text[], $6::int[], $7::int[])`,
+        [
+          fresh.map(r => r.number), fresh.map(r => r.date), fresh.map(r => r.time),
+          fresh.map(r => r.map), fresh.map(r => r.condition),
+          fresh.map(r => r.money), fresh.map(r => r.xp)
+        ]
+      );
+    }
+
+    let lootUpdated = null;
+    let rankApplied = false;
+
+    if (mode === 'replace') {
+      if (Array.isArray(data.loot)) {
+        await client.query('UPDATE loot_items SET amount = 0, updated_at = now()');
+        lootUpdated = 0;
+        for (const l of data.loot) {
+          if (!isObj(l) || typeof l.key !== 'string' ||
+              !Number.isInteger(l.amount) || l.amount < 0 || l.amount > INT_MAX) continue;
+          const r = await client.query(
+            'UPDATE loot_items SET amount = $1, updated_at = now() WHERE item_key = $2',
+            [l.amount, l.key]
+          );
+          lootUpdated += r.rowCount;
+        }
+      }
+      const rank = isObj(data.settings) ? data.settings.rank : undefined;
+      if (rank === null || (typeof rank === 'string' &&
+          (rank === '' || RANK_CATALOG.some(r => r.key === rank)))) {
+        await client.query(
+          `INSERT INTO app_settings (key, value, updated_at) VALUES ('rank', $1, now())
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+          [rank || '']
+        );
+        rankApplied = true;
+      }
+    }
+
+    await client.query(dryRun ? 'ROLLBACK' : 'COMMIT');
+
+    res.json({
+      mode, dryRun,
+      total: data.rounds.length,
+      inserted: fresh.length,
+      duplicates,
+      invalid,
+      errors,
+      deleted: mode === 'replace' ? existing.rowCount : 0,
+      lootUpdated,
+      rankApplied
+    });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error(err);
+    res.status(500).json({ error: 'Import fehlgeschlagen. Es wurde nichts verändert.' });
+  } finally {
+    client.release();
   }
 });
 

@@ -275,6 +275,42 @@
     </div>
   </div>
 
+  <div class="panel danger-zone">
+  <h2 class="panel-title">
+    <span data-icon="alert" data-icon-class=""></span>
+    <span data-i18n="importTitle"></span>
+  </h2>
+  <p class="panel-hint" data-i18n="importHint"></p>
+
+  <div class="import-modes">
+    <label class="import-mode">
+      <input type="radio" name="importMode" value="merge" checked>
+      <span><b data-i18n="importModeMerge"></b><small data-i18n="importModeMergeDesc"></small></span>
+    </label>
+    <label class="import-mode">
+      <input type="radio" name="importMode" value="replace">
+      <span><b data-i18n="importModeReplace"></b><small data-i18n="importModeReplaceDesc"></small></span>
+    </label>
+  </div>
+
+  <div class="field import-file">
+    <label for="importFile" data-i18n="importFileLabel"></label>
+    <input type="file" id="importFile" accept=".json,application/json">
+  </div>
+
+  <div class="import-preview hidden" id="importPreview"></div>
+
+  <div class="field import-confirm hidden" id="importConfirmRow">
+    <label for="importConfirm" id="importConfirmLabel"></label>
+    <input type="text" id="importConfirm" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn danger" id="importBtn" disabled></button>
+    <span class="form-msg" id="importMsg"></span>
+  </div>
+</div>
+
   <div class="ticker-wrap">
     <div class="ticker-label" data-i18n="tickerLabel"></div>
       <div class="ticker-viewport">
@@ -422,6 +458,7 @@ function applyStaticTranslations(){
   updateHsToggleLabels();
   updateRankSelectPlaceholder();
   updateRankCard();
+  updateImportUI();
 }
 
 function setLang(lang){
@@ -1787,6 +1824,114 @@ function refreshAll(){
   if($('#view-loot').classList.contains('active')) renderLoot();
   if($('#view-trophy').classList.contains('active')) renderTrophy();
 }
+
+let importPayload = null;
+let importPreview = null;
+let importBusy = false;
+
+const tpl = (str, vars) => Object.entries(vars).reduce(
+  (s, [k, v]) => s.replace('{' + k + '}', v), str);
+
+function importMode(){
+  return document.querySelector('input[name="importMode"]:checked').value;
+}
+
+function showImportMsg(text, kind){
+  const msg = $('#importMsg');
+  msg.textContent = text;
+  msg.classList.remove('ok','err');
+  msg.classList.add(kind, 'show');
+  setTimeout(()=>msg.classList.remove('show'), 4000);
+}
+
+async function postImport(dryRun){
+  const res = await fetch(`/api/import?mode=${importMode()}&dryRun=${dryRun ? 1 : 0}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(importPayload)
+  });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(data.error || t('importError'));
+  return data;
+}
+
+function renderImportPreview(){
+  const el = $('#importPreview');
+  const p = importPreview;
+  if(!p){ el.classList.add('hidden'); el.innerHTML = ''; return; }
+  const vars = { new: fmtXP(p.inserted), dup: fmtXP(p.duplicates), del: fmtXP(p.deleted), invalid: fmtXP(p.invalid) };
+  const lines = [ tpl(t(p.mode === 'replace' ? 'importPreviewReplace' : 'importPreviewMerge'), vars) ];
+  if(p.lootUpdated != null) lines.push(tpl(t('importPreviewLoot'), { n: p.lootUpdated }));
+  if(p.rankApplied) lines.push(t('importPreviewRank'));
+  if(p.errors.length) lines.push(tpl(t('importPreviewInvalidRows'), { rows: p.errors.join(', ') }));
+  el.innerHTML = lines.map(l => `<div>${escapeHTML(l)}</div>`).join('');
+  el.classList.remove('hidden');
+}
+
+function updateImportUI(){
+  const replace = importMode() === 'replace';
+  const word = t('importConfirmWord');
+  $('#importBtn').textContent = t(replace ? 'importBtnReplace' : 'importBtnMerge');
+  $('#importConfirmLabel').textContent = tpl(t('importConfirmLabel'), { word });
+  $('#importConfirmRow').classList.toggle('hidden', !(replace && importPreview));
+  const confirmed = !replace || $('#importConfirm').value.trim() === word;
+  $('#importBtn').disabled = !importPreview || !confirmed || importBusy;
+  renderImportPreview();
+}
+
+async function refreshImportPreview(){
+  importPreview = null;
+  $('#importConfirm').value = '';
+  if(importPayload){
+    try{
+      importPreview = await postImport(true);
+    }catch(err){
+      showImportMsg(err.message, 'err');
+    }
+  }
+  updateImportUI();
+}
+
+$('#importFile').addEventListener('change', async e => {
+  importPayload = null;
+  const file = e.target.files[0];
+  if(file){
+    try{
+      importPayload = JSON.parse(await file.text());
+    }catch(err){
+      showImportMsg(t('importInvalidFile'), 'err');
+    }
+  }
+  await refreshImportPreview();
+});
+
+document.querySelectorAll('input[name="importMode"]').forEach(r =>
+  r.addEventListener('change', refreshImportPreview));
+$('#importConfirm').addEventListener('input', updateImportUI);
+
+$('#importBtn').addEventListener('click', async () => {
+  importBusy = true;
+  updateImportUI();
+  try{
+    const result = await postImport(false);
+    await Promise.all([loadRounds(), loadLoot(), loadSettings()]);
+    renderProfile();
+    exitEditMode();
+    refreshAll();
+    setStatus('ok');
+    importPayload = null;
+    importPreview = null;
+    $('#importFile').value = '';
+    $('#importConfirm').value = '';
+    showImportMsg(tpl(t('importDone'), { n: fmtXP(result.inserted) }), 'ok');
+  }catch(err){
+    showImportMsg(err.message, 'err');
+    setStatus('err');
+  }finally{
+    importBusy = false;
+    updateImportUI();
+  }
+});
 
 (async function init(){
   applyIcons();
