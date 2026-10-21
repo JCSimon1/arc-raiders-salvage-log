@@ -135,6 +135,13 @@
         <select id="filterMap"></select>
         <select id="filterCondition"></select>
         <input type="month" id="filterMonth">
+        <select id="sortOrder">
+          <option value="" data-i18n="sortDefault"></option>
+          <option value="xpAsc" data-i18n="sortXPAsc"></option>
+          <option value="xpDesc" data-i18n="sortXPDesc"></option>
+          <option value="moneyAsc" data-i18n="sortMoneyAsc"></option>
+          <option value="moneyDesc" data-i18n="sortMoneyDesc"></option>
+        </select>
         <button class="btn ghost" id="clearFilters" data-i18n="clearFilters"></button>
       </div>
       <div id="fullTableWrap"></div>
@@ -892,7 +899,13 @@ function renderFullTable(){
     if(monthF && r.date && r.date.slice(0,7)!==monthF) return false;
     return true;
   });
-  list = sortedRounds(list);
+  list = sortedRounds(list); 
+  const sortF = $('#sortOrder').value;
+  if(sortF){
+    const metric = sortF.startsWith('xp') ? 'xp' : 'money';
+    const dir = sortF.endsWith('Asc') ? 1 : -1;
+    list.sort((a, b) => dir * ((Number(a[metric]) || 0) - (Number(b[metric]) || 0)));
+  }
 
   const pageSize = CONFIG.ui.listPageSize;
   const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
@@ -986,6 +999,7 @@ $('#filterCondition').addEventListener('change', ()=>{ listPage = 1; renderFullT
 $('#filterMonth').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#clearFilters').addEventListener('click', ()=>{
   $('#filterMap').value=''; $('#filterCondition').value=''; $('#filterMonth').value='';
+  $('#sortOrder').value='';
   listPage = 1;
   renderFullTable();
 });
