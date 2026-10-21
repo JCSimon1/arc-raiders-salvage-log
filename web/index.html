@@ -1844,6 +1844,7 @@ const CSV_HEADERS = {
 };
 // Schreibweisen aus der eigenen Tabelle → Name in der App (Kleinbuchstaben als Schlüssel)
 const MAP_ALIASES = { dam: 'Dam Battlegrounds' };
+const CONDITION_ALIASES = { None: 'Clear' };
 
 function parseCsv(text){
   text = text.replace(/^\uFEFF/, '');
@@ -1890,6 +1891,11 @@ function csvMap(v){
   return (CONFIG.maps || []).find(m => m.toLowerCase() === key) || MAP_ALIASES[key] || name;
 }
 
+function csvCondition(v){
+  const name = v.trim();
+  return CONDITION_ALIASES[name.toLowerCase()] || name;
+}
+
 function csvToPayload(text){
   const rows = parseCsv(text);
   if(rows.length === 0) throw new Error(t('importCsvEmpty'));
@@ -1907,7 +1913,7 @@ function csvToPayload(text){
     date: csvDate(cell(r, 'date')),
     time: csvTime(cell(r, 'time')),
     map: csvMap(cell(r, 'map')),
-    condition: cell(r, 'condition').trim(),
+    condition: csvCondition(cell(r, 'condition')),
     money: csvInt(cell(r, 'money')),
     xp: csvInt(cell(r, 'xp'))
   }));
