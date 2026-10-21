@@ -381,7 +381,6 @@ async function loadConfig(){
     const res = await fetch(CONFIG_API);
     if(!res.ok) throw new Error('config load failed');
     const data = await res.json();
-    // fehlende Teile mit Fallback auffüllen, damit die UI nie an undefined scheitert
     CONFIG = {
       ...FALLBACK_CONFIG,
       ...data,
@@ -394,22 +393,6 @@ async function loadConfig(){
 }
 
 const isDeath = r => Number(r.money) <= CONFIG.ui.deathMoneyThreshold;
-
-// ---------- Badges (Weekly / Monthly Achievements) ----------
-const BADGE_TIERS = ['bronze', 'silver', 'gold', 'platinum'];
-
-// metric: 'money' | 'xp' | 'rounds'; period: 'monthly' | 'weekly'
-// Liefert die höchste erreichte Stufe oder null.
-function badgeFor(metric, value, period){
-  const thresholds = CONFIG.badges && CONFIG.badges[metric];
-  if(!thresholds) return null;
-  const scale = period === 'weekly' ? (CONFIG.badges.weeklyScale || 1) : 1;
-  let reached = null;
-  for(const tier of BADGE_TIERS){
-    if(value >= thresholds[tier] * scale) reached = tier;
-  }
-  return reached;
-}
 
 let currentLang = localStorage.getItem('arclog-lang') || (navigator.language.startsWith('de') ? 'de' : 'en');
 
@@ -457,7 +440,6 @@ function setStatus(state){
   if(state) dot.classList.add(state);
 }
 
-// ---------- Logo ticker / marquee ----------
 function companyDisplayName(filename){
   return filename
     .replace(/\.webp$/i, '')
@@ -474,18 +456,15 @@ function renderTicker(){
     <img src="/images/companies/${encodeURIComponent(file)}" alt="${escapeHTML(companyDisplayName(file))}"
          title="${escapeHTML(companyDisplayName(file))}" loading="lazy" onerror="this.remove()">
   `).join('');
-  // zweimal rendern für nahtlosen Loop
   track.innerHTML = itemHTML + itemHTML;
 }
 
-// ---------- Map-Vorschläge im Formular ----------
 function renderMapOptions(){
   const list = $('#mapOptions');
   if(!list) return;
   list.innerHTML = (CONFIG.maps || []).map(m=>`<option value="${escapeHTML(m)}">`).join('');
 }
 
-// ---------- API ----------
 async function loadRounds(){
   const res = await fetch(API);
   if(!res.ok) throw new Error('load failed');
@@ -530,7 +509,6 @@ async function deleteRound(id){
   if(!res.ok) throw new Error('delete failed');
 }
 
-// ---------- Loot API ----------
 async function loadLoot(){
   const res = await fetch(LOOT_API);
   if(!res.ok) throw new Error('loot load failed');
@@ -546,7 +524,6 @@ async function saveLootAmount(key, amount){
   return res.json();
 }
 
-// ---------- Settings / Profil (Rang) ----------
 function rankImgSrc(key){ return '/images/ranks/' + key + '.webp'; }
 
 async function loadSettings(){
@@ -635,7 +612,6 @@ $('#rankSelect') && $('#rankSelect').addEventListener('change', async e=>{
   }
 });
 
-// ---------- Steam-Profil ----------
 const STEAM_STATUS_CLASSES = [
   'steam-online','steam-busy','steam-away','steam-snooze',
   'steam-looking_to_trade','steam-looking_to_play','steam-offline'
@@ -655,7 +631,7 @@ function showSteamLoading(){
 function hideSteamCard(){
   const card = $('#steamCard');
   if(card){
-    card.classList.remove('is-loading');   // NEU
+    card.classList.remove('is-loading'); 
     card.classList.add('hidden');
   }
 }
@@ -706,7 +682,6 @@ async function loadSteamProfile(){
   }
 }
 
-// ---------- Tabs ----------
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
@@ -729,7 +704,6 @@ document.querySelectorAll('.sub-tabs button').forEach(btn=>{
   });
 });
 
-// ---------- Form ----------
 const form = $('#roundForm');
 function nextNumber(){
   if(rounds.length===0) return 1;
@@ -819,7 +793,6 @@ form.addEventListener('submit', async e=>{
   }
 });
 
-// ---------- Rendering: tables ----------
 function sortedRounds(list){
   return [...list].sort((a,b)=>{
     const da = a.date+ 'T'+(a.time||'00:00');
@@ -853,7 +826,7 @@ function tableHTML(list, opts){
       <td><div class="cell-with-icon"><img class="condition-thumb" src="${conditionImgSrc(r.condition)}" alt="" loading="lazy" onerror="this.remove()">${escapeHTML(r.condition)}</div></td>
       <td class="money">${fmtMoney(r.money)}</td>
       <td class="xp">${fmtXP(r.xp)}</td>
-      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}" title="${t('deleteHoldHint')}"}><span>${t('delete')}</span></button></td>`:''}
+      ${editable? `<td class="actions"><button class="edit" data-id="${r.id}">${t('edit')}</button><button class="del" data-id="${r.id}" title="${t('deleteHoldHint')}"><span>${t('delete')}</span></button></td>`:''}
     </tr>
   `).join('');
   return `
@@ -966,7 +939,7 @@ function bindDeleteButtons(scopeSel){
     };
 
     const start = (e)=>{
-      if(e.button !== undefined && e.button !== 0) return;   // nur linke Maustaste
+      if(e.button !== undefined && e.button !== 0) return;
       e.stopPropagation();
       btn.classList.add('holding');
       timer = setTimeout(async ()=>{
@@ -987,7 +960,7 @@ function bindDeleteButtons(scopeSel){
     btn.style.setProperty('--hold-ms', HOLD_MS + 'ms');
     btn.addEventListener('pointerdown', start);
     ['pointerup','pointerleave','pointercancel'].forEach(ev => btn.addEventListener(ev, cancel));
-    btn.addEventListener('click', e => e.stopPropagation());   // verhindert Öffnen der Round Card
+    btn.addEventListener('click', e => e.stopPropagation());
     btn.addEventListener('contextmenu', e => e.preventDefault());
     btn.addEventListener('keydown', e => { if((e.key===' '||e.key==='Enter') && !e.repeat) start(e); });
     btn.addEventListener('keyup', e => { if(e.key===' '||e.key==='Enter') cancel(); });
@@ -997,6 +970,7 @@ function bindDeleteButtons(scopeSel){
 $('#filterMap').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#filterCondition').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#filterMonth').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
+$('#sortOrder').addEventListener('change', ()=>{ listPage = 1; renderFullTable(); });
 $('#clearFilters').addEventListener('click', ()=>{
   $('#filterMap').value=''; $('#filterCondition').value=''; $('#filterMonth').value='';
   $('#sortOrder').value='';
@@ -1004,7 +978,6 @@ $('#clearFilters').addEventListener('click', ()=>{
   renderFullTable();
 });
 
-// ---------- Round Report Card ----------
 function avgStats(){
   const s = statsFor(rounds);
   return { avgMoney: s.avgMoney, avgXP: s.avgXP };
@@ -1076,7 +1049,7 @@ function openRoundCard(round, opts){
   $('#rcXP').textContent = '0';
 
   overlay.classList.remove('open');
-  void card.offsetWidth; // reflow, damit die Animation bei erneutem Öffnen neu startet
+  void card.offsetWidth;
   overlay.classList.add('open');
   playSwoosh();
 
@@ -1117,7 +1090,6 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape') closeRoundCard();
 });
 
-// ---------- Loot ----------
 function lootTableHTML(list){
   if(list.length===0){
     return '<div class="empty-state">' + t('emptyState') + '</div>';
@@ -1187,7 +1159,6 @@ function bindLootAmountInputs(){
   });
 }
 
-// ---------- Analysis ----------
 function groupBy(list, keyFn){
   const map = new Map();
   list.forEach(r=>{
@@ -1452,7 +1423,6 @@ function drawBarChart(canvasId, labels, datasets){
   });
 }
 
-// ---------- Distribution (pie charts) ----------
 function drawPieChart(canvasId, labels, data){
   const ctx = document.getElementById(canvasId);
   if(charts[canvasId]) charts[canvasId].destroy();
@@ -1562,7 +1532,7 @@ function periodRange(kind, ref){
   if(kind === 'month'){
     return [dateKey(new Date(y, m, 1)), dateKey(new Date(y, m+1, 1))];
   }
-  const dow = (ref.getDay() + 6) % 7; // Montag = 0
+  const dow = (ref.getDay() + 6) % 7; 
   return [dateKey(new Date(y, m, d - dow)), dateKey(new Date(y, m, d - dow + 7))];
 }
 
@@ -1687,7 +1657,6 @@ function soundReady(){
   return soundEnabled && soundVolume > 0 && audioCtx && audioCtx.state === 'running';
 }
 
-// Weißes Rauschen einmal erzeugen und wiederverwenden
 let noiseBuf = null;
 function getNoiseBuffer(){
   if(!noiseBuf){
@@ -1699,7 +1668,6 @@ function getNoiseBuffer(){
   return noiseBuf;
 }
 
-// Swoosh: gefiltertes Rauschen, Bandpass fährt nach oben und wieder runter
 function playSwoosh(){
   if(!soundReady()) return;
   const t0 = audioCtx.currentTime;
@@ -1734,7 +1702,7 @@ function playCountUp(durationMs){
 
   for(let i = 0; i < steps; i++){
     const p = i / steps;
-    const at = t0 + dur * (1 - Math.pow(1 - p, 1 / 3));  // Umkehrung von 1-(1-t)^3
+    const at = t0 + dur * (1 - Math.pow(1 - p, 1 / 3));
     const freq = 600 + 900 * p;
 
     const osc = audioCtx.createOscillator();
@@ -1781,9 +1749,8 @@ soundVolumeEl.addEventListener('input', ()=>{
   soundVolume = Number(soundVolumeEl.value);
   localStorage.setItem('arclog-sound-vol', soundVolume);
 });
-soundVolumeEl.addEventListener('change', ()=>{ unlockAudio(); playTick(); }); // Vorschau
+soundVolumeEl.addEventListener('change', ()=>{ unlockAudio(); playTick(); });
 
-// ---------- Global refresh ----------
 function updateDatalists(){
   const conds = [...new Set(rounds.map(r=>r.condition).filter(Boolean))].sort();
   $('#conditionOptions').innerHTML = conds.map(c=>`<option value="${escapeHTML(c)}">`).join('');
@@ -1805,7 +1772,6 @@ function refreshAll(){
   if($('#view-trophy').classList.contains('active')) renderTrophy();
 }
 
-// ---------- Init ----------
 (async function init(){
   applyIcons();
   await loadConfig();
@@ -1813,7 +1779,7 @@ function refreshAll(){
     currentLang = CONFIG.ui.defaultLanguage;
   }
   applyStaticTranslations();
-  loadSteamProfile()
+  loadSteamProfile();
   renderMapOptions();
   populateFilterOptions();
   prefillForm();
