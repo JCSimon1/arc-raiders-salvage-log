@@ -852,7 +852,7 @@ function tableHTML(list, opts){
   return `
     <table>
       <thead><tr>
-        <th>${t('thNumber')}</th><th>${t('thDate')}</th><th>${t('thTime')}</th><th>${t('thMap')}</th><th>${t('thCondition')}</th><th>${t('thMoney')}</th><th>${t('thXP')}</th>${editable?'<th></th>':''}
+        <th>${t('thNumber')}</th><th>${t('thDate')}</th><th>${t('thTime')}</th><th>${t('thMap')}</th><th>${t('thCondition')}</th><th class="center">${t('thMoney')}</th><th class="center">${t('thXP')}</th>${editable?'<th></th>':''}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -1122,7 +1122,7 @@ function lootTableHTML(list){
   return `
     <table>
       <thead><tr>
-        <th>${t('thItem')}</th><th>${t('thPrice')}</th><th>${t('thAmount')}</th><th>${t('thSum')}</th>
+        <th>${t('thItem')}</th><th class="center">${t('thPrice')}</th><th class="center">${t('thAmount')}</th><th class="center">${t('thSum')}</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>

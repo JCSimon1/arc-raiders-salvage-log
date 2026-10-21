@@ -15,7 +15,14 @@
   --radius:3px;
 }
 *{box-sizing:border-box;}
+
 html,body{margin:0;padding:0;}
+
+body{
+  font-family:'IBM Plex Sans',sans-serif;
+  color:var(--text);
+}
+
 body::before{
   content:'';
   position:fixed;
@@ -222,6 +229,7 @@ thead th{
   padding:0 10px 10px;border-bottom:1px solid var(--border);
   font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;
 }
+thead th.center{text-align:center;}
 tbody td{padding:10px 10px;border-bottom:1px solid var(--border-soft);color:var(--text);font-family:'IBM Plex Mono',monospace;}
 tbody tr{
   transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
@@ -357,7 +365,7 @@ td.actions button.del:hover{color:var(--negative);}
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: "JetBrain Mono", monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 16px;
   color: var(--text-faint);
   letter-spacing: 0.3px;
@@ -645,6 +653,7 @@ input.loot-amount-input:focus{border-color:var(--accent-2);}
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;
   margin:16px 0 16px;letter-spacing:.2px;
   border-bottom:1px dashed var(--border);padding-bottom:14px;
+  color:var(--accent);
 }
 .rc-title span{color:var(--accent);}
 

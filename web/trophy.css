@@ -72,7 +72,10 @@
   text-shadow:0 2px 10px rgba(0,0,0,.6);
 }
 .tc-month{
-  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;line-height:1;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:24px;
+  line-height:1;
+  color:var(--accent);
 }
 .tc-month span{color:var(--accent);}
 .tc-title-chip{
@@ -149,7 +152,7 @@
   transform:scale(.94);opacity:0;
   transition:transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
 }
-.tc-overlay.open .tc-modal{transform:scale(1.1);opacity:1;}
+.tc-overlay.open .tc-modal{transform:scale(1);opacity:1;}
 .tc-modal .tc-hero{height:260px;}
 .tc-modal .tc-month{font-size:30px;}
 .tc-modal .tc-hero-value{font-size:56px;}
