@@ -293,7 +293,7 @@
 
   <div class="field import-file">
     <label for="importFile" data-i18n="importFileLabel"></label>
-    <input type="file" id="importFile" accept=".json,application/json">
+    <input type="file" id="importFile" accept=".json,.csv,application/json,text/csv">
   </div>
 
   <div class="import-preview hidden" id="importPreview"></div>
@@ -1827,9 +1827,97 @@ function refreshAll(){
 let importPayload = null;
 let importPreview = null;
 let importBusy = false;
+let importNotes = [];  
 
 const tpl = (str, vars) => Object.entries(vars).reduce(
   (s, [k, v]) => s.replace('{' + k + '}', v), str);
+
+// ---------- CSV → Import-Payload ----------
+const CSV_HEADERS = {
+  number:    ['#', 'nr', 'nr.', 'no', 'no.', 'number', 'nummer'],
+  date:      ['date', 'datum'],
+  time:      ['time', 'zeit', 'uhrzeit'],
+  map:       ['map'],
+  condition: ['condition', 'map condition', 'map-condition'],
+  money:     ['$', 'money', 'geld'],
+  xp:        ['xp']
+};
+// Schreibweisen aus der eigenen Tabelle → Name in der App (Kleinbuchstaben als Schlüssel)
+const MAP_ALIASES = { dam: 'Dam Battlegrounds' };
+
+function parseCsv(text){
+  text = text.replace(/^\uFEFF/, '');
+  const first = text.split(/\r?\n/, 1)[0];
+  const sep = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i + 1] === '"'){ cell += '"'; i++; } else inQ = false;
+      } else cell += c;
+    } else if(c === '"') inQ = true;
+    else if(c === sep){ row.push(cell); cell = ''; }
+    else if(c === '\n' || c === '\r'){
+      if(c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell); cell = ''; rows.push(row); row = [];
+    } else cell += c;
+  }
+  if(cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim() !== ''));
+}
+
+function csvDate(v){
+  v = v.trim();
+  const m = v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : v;
+}
+function csvTime(v){
+  v = v.trim();
+  const m = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  return m ? m[1].padStart(2, '0') + ':' + m[2] : v;
+}
+function csvInt(v){
+  let s = String(v).trim().replace(/[$\s]/g, '');
+  if(/^-?\d{1,3}([.,']\d{3})+$/.test(s)) s = s.replace(/[.,']/g, '');   // Tausendertrenner
+  const n = Number(s);
+  return s !== '' && Number.isFinite(n) ? n : 'invalid';   // der Server zählt das als ungültig
+}
+function csvMap(v){
+  const name = v.trim();
+  const key = name.toLowerCase();
+  return (CONFIG.maps || []).find(m => m.toLowerCase() === key) || MAP_ALIASES[key] || name;
+}
+
+function csvToPayload(text){
+  const rows = parseCsv(text);
+  if(rows.length === 0) throw new Error(t('importCsvEmpty'));
+
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const idx = {};
+  for(const [field, names] of Object.entries(CSV_HEADERS)){
+    idx[field] = header.findIndex(h => names.includes(h));
+    if(idx[field] < 0) throw new Error(tpl(t('importCsvHeaders'), { col: names[0] }));
+  }
+
+  const cell = (r, field) => (r[idx[field]] ?? '');
+  const rounds = rows.slice(1).map(r => ({
+    number: csvInt(cell(r, 'number')),
+    date: csvDate(cell(r, 'date')),
+    time: csvTime(cell(r, 'time')),
+    map: csvMap(cell(r, 'map')),
+    condition: cell(r, 'condition').trim(),
+    money: csvInt(cell(r, 'money')),
+    xp: csvInt(cell(r, 'xp'))
+  }));
+
+  const known = new Set((CONFIG.maps || []).map(m => m.toLowerCase()));
+  const unknown = [...new Set(rounds.map(r => r.map).filter(m => m && !known.has(m.toLowerCase())))];
+  const notes = unknown.length ? [tpl(t('importNoteMaps'), { maps: unknown.join(', ') })] : [];
+
+  return { payload: { app: 'arc-log', schemaVersion: 1, rounds }, notes };
+}
 
 function importMode(){
   return document.querySelector('input[name="importMode"]:checked').value;
@@ -1863,6 +1951,7 @@ function renderImportPreview(){
   if(p.lootUpdated != null) lines.push(tpl(t('importPreviewLoot'), { n: p.lootUpdated }));
   if(p.rankApplied) lines.push(t('importPreviewRank'));
   if(p.errors.length) lines.push(tpl(t('importPreviewInvalidRows'), { rows: p.errors.join(', ') }));
+  importNotes.forEach(n => lines.push(n));
   el.innerHTML = lines.map(l => `<div>${escapeHTML(l)}</div>`).join('');
   el.classList.remove('hidden');
 }
@@ -1893,12 +1982,20 @@ async function refreshImportPreview(){
 
 $('#importFile').addEventListener('change', async e => {
   importPayload = null;
+  importNotes = [];
   const file = e.target.files[0];
   if(file){
     try{
-      importPayload = JSON.parse(await file.text());
+      const text = await file.text();
+      if(/\.csv$/i.test(file.name)){
+        const r = csvToPayload(text);
+        importPayload = r.payload;
+        importNotes = r.notes;
+      } else {
+        importPayload = JSON.parse(text);
+      }
     }catch(err){
-      showImportMsg(t('importInvalidFile'), 'err');
+      showImportMsg(err instanceof SyntaxError ? t('importInvalidFile') : err.message, 'err');
     }
   }
   await refreshImportPreview();
@@ -1920,6 +2017,7 @@ $('#importBtn').addEventListener('click', async () => {
     setStatus('ok');
     importPayload = null;
     importPreview = null;
+    importNotes = []; 
     $('#importFile').value = '';
     $('#importConfirm').value = '';
     showImportMsg(tpl(t('importDone'), { n: fmtXP(result.inserted) }), 'ok');
