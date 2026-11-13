@@ -114,6 +114,23 @@
           <label for="f-xp" data-i18n="labelXP"></label>
           <input type="number" id="f-xp" step="1" placeholder="0" required>
         </div>
+        <div class="field">
+  <label for="f-type" data-i18n="labelType"></label>
+  <input list="typeOptions" id="f-type">
+  <datalist id="typeOptions"></datalist>
+</div>
+<div class="field">
+  <label for="f-loadout" data-i18n="labelLoadout"></label>
+  <input type="number" id="f-loadout" min="0" step="1">
+</div>
+<div class="field">
+  <label for="f-squad" data-i18n="labelSquad"></label>
+  <input type="number" id="f-squad" min="1" max="3" step="1">
+</div>
+<div class="field span-2">
+  <label for="f-comment" data-i18n="labelComment"></label>
+  <input type="text" id="f-comment" maxlength="500">
+</div>
         <div class="form-actions">
           <button type="submit" class="btn" id="submitBtn" data-i18n="submitBtn"></button>
           <button type="button" class="btn ghost hidden" id="cancelEditBtn" data-i18n="cancelEdit"></button>
@@ -379,7 +396,7 @@ let charts = {};
 let editingId = null;
 let lootSaveTimers = {};
 let listPage = 1;
-let listSort = { metric: null, dir: -1 }; 
+let listSort = { metric: null, dir: -1 };
 let rankCatalog = [];
 let currentRank = null;
 let rcCurrentRound = null;
@@ -503,6 +520,12 @@ function renderMapOptions(){
   list.innerHTML = (CONFIG.maps || []).map(m=>`<option value="${escapeHTML(m)}">`).join('');
 }
 
+function renderTypeOptions(){
+  const list = $('#typeOptions');
+  if(!list) return;
+  list.innerHTML = (CONFIG.roundTypes || []).map(m=>`<option value="${escapeHTML(m)}">`).join('');
+}
+
 async function loadRounds(){
   const res = await fetch(API);
   if(!res.ok) throw new Error('load failed');
@@ -519,7 +542,11 @@ async function createRound(entry){
       map: entry.map,
       map_condition: entry.condition,
       money: entry.money,
-      xp: entry.xp
+      xp: entry.xp,
+      loadout: entry.loadout,
+      squad_size: entry.squad_size,
+      round_type: entry.round_type,
+      comment: entry.comment
     })
   });
   if(!res.ok) throw new Error('save failed');
@@ -536,7 +563,11 @@ async function updateRound(id, entry){
       map: entry.map,
       map_condition: entry.condition,
       money: entry.money,
-      xp: entry.xp
+      xp: entry.xp,
+      loadout: entry.loadout,
+      squad_size: entry.squad_size,
+      round_type: entry.round_type,
+      comment: entry.comment
     })
   });
   if(!res.ok) throw new Error('update failed');
@@ -669,7 +700,7 @@ function showSteamLoading(){
 function hideSteamCard(){
   const card = $('#steamCard');
   if(card){
-    card.classList.remove('is-loading'); 
+    card.classList.remove('is-loading');
     card.classList.add('hidden');
   }
 }
@@ -678,7 +709,7 @@ function showSteamCard(data){
   lastSteamData = data;
   const card = $('#steamCard');
   if(!card) return;
-  card.classList.remove('is-loading');  
+  card.classList.remove('is-loading');
   card.classList.remove('hidden');
 
   $('#steamName').textContent = data.name || '—';
@@ -771,6 +802,10 @@ function enterEditMode(round){
   $('#f-condition').value = round.condition;
   $('#f-money').value = round.money;
   $('#f-xp').value = round.xp;
+  $('#f-loadout').value = round.loadout;
+  $('#f-squad').value = round.squad_size;
+  $('#f-comment').value = round.comment;
+  $('#f-type').value = round.round_type;
   $('#entryPanelTitle').textContent = t('editTitle');
   $('#submitBtn').textContent = t('updateBtn');
   $('#cancelEditBtn').classList.remove('hidden');
@@ -900,7 +935,7 @@ function renderRecentTable(){
 function slugify(s){
   return String(s||'')
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') 
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9]/g, '');
 }
 function mapImgSrc(map){ return '/images/maps/' + slugify(map) + '.webp'; }
@@ -918,7 +953,7 @@ function renderFullTable(){
     if(monthF && r.date && r.date.slice(0,7)!==monthF) return false;
     return true;
   });
-  list = sortedRounds(list); 
+  list = sortedRounds(list);
   if(listSort.metric){
     list.sort((a, b) => listSort.dir * ((Number(a[listSort.metric]) || 0) - (Number(b[listSort.metric]) || 0)));
   }
@@ -1248,7 +1283,7 @@ function renderGlobalStats(){
     <div class="stat-card"><div class="value accent">${fmtMoney(s.totalMoney)}</div><div class="label">${t('statTotalMoney')}</div></div>
     <div class="stat-card"><div class="value accent">${fmtMoney(Math.round(s.avgMoney))}</div><div class="label">${t('statAvgMoney')}</div></div>
     <div class="stat-card"><div class="value teal">${fmtXP(s.totalXP)}</div><div class="label">${t('statTotalXP')}</div></div>
-    <div class="stat-card"><div class="value teal">${fmtXP(Math.round(s.avgXP))}</div><div class="label">${t('statAvgXP')}</div></div> 
+    <div class="stat-card"><div class="value teal">${fmtXP(Math.round(s.avgXP))}</div><div class="label">${t('statAvgXP')}</div></div>
   `;
 }
 
@@ -1584,7 +1619,7 @@ function periodRange(kind, ref){
   if(kind === 'month'){
     return [dateKey(new Date(y, m, 1)), dateKey(new Date(y, m+1, 1))];
   }
-  const dow = (ref.getDay() + 6) % 7; 
+  const dow = (ref.getDay() + 6) % 7;
   return [dateKey(new Date(y, m, d - dow)), dateKey(new Date(y, m, d - dow + 7))];
 }
 
@@ -1689,7 +1724,7 @@ function unlockAudio(){
 function playTick(){
   if(!soundEnabled || soundVolume <= 0 || !audioCtx || audioCtx.state !== 'running') return;
   const nowMs = performance.now();
-  if(nowMs - lastTick < 50) return;  
+  if(nowMs - lastTick < 50) return;
   lastTick = nowMs;
 
   const t0 = audioCtx.currentTime;
@@ -1827,7 +1862,7 @@ function refreshAll(){
 let importPayload = null;
 let importPreview = null;
 let importBusy = false;
-let importNotes = [];  
+let importNotes = [];
 
 const tpl = (str, vars) => Object.entries(vars).reduce(
   (s, [k, v]) => s.replace('{' + k + '}', v), str);
@@ -2023,7 +2058,7 @@ $('#importBtn').addEventListener('click', async () => {
     setStatus('ok');
     importPayload = null;
     importPreview = null;
-    importNotes = []; 
+    importNotes = [];
     $('#importFile').value = '';
     $('#importConfirm').value = '';
     showImportMsg(tpl(t('importDone'), { n: fmtXP(result.inserted) }), 'ok');

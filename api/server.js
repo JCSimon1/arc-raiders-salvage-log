@@ -74,6 +74,12 @@ const SCHEMA = `
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
+  ALTER TABLE rounds
+    ADD COLUMN IF NOT EXISTS loadout    INTEGER,
+    ADD COLUMN IF NOT EXISTS squad_size INTEGER,
+    ADD COLUMN IF NOT EXISTS round_type TEXT,
+    ADD COLUMN IF NOT EXISTS comment    TEXT;
+
   CREATE TABLE IF NOT EXISTS loot_items (
     id SERIAL PRIMARY KEY,
     item_key TEXT UNIQUE NOT NULL,
@@ -128,7 +134,11 @@ function toApi(row) {
     map: row.map,
     condition: row.map_condition,
     money: row.money,
-    xp: row.xp
+    xp: row.xp,
+    loadout: row.loadout,
+    squadSize: row.squad_size,
+    type: row.round_type,
+    comment: row.comment
   };
 }
 
@@ -141,11 +151,34 @@ function toLootApi(row) {
   };
 }
 
+function parseExtras(body) {
+  const optInt = v => (v === null || v === undefined || v === '') ? null : Number(v);
+  const optText = (v, max) => {
+    const s = typeof v === 'string' ? v.trim() : '';
+    return s ? s.slice(0, max) : null;
+  };
+
+  const loadout = optInt(body.loadout);
+  const squadSize = optInt(body.squad_size);
+
+  if (loadout !== null && (!Number.isInteger(loadout) || loadout < 0))
+    return { error: 'Ungültiges Loadout.' };
+  if (squadSize !== null && (!Number.isInteger(squadSize) || squadSize < 1 || squadSize > 3))
+    return { error: 'Ungültige Squad-Größe.' };
+
+  return {
+    loadout,
+    squadSize,
+    type: optText(body.round_type, 50),
+    comment: optText(body.comment, 500)
+  };
+}
+
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.get('/api/config', (req, res) => {
-  const { ui, maps, companyLogos, badges, badgeRules, charts, trophyRoom } = CONFIG;
-  res.json({ ui, maps, companyLogos, badges, badgeRules, charts, trophyRoom, steamConfigured: steamConfigured()  });
+  const { ui, maps, roundTypes, companyLogos, badges, badgeRules, charts, trophyRoom } = CONFIG;
+  res.json({ ui, maps, roundTypes, companyLogos, badges, badgeRules, charts, trophyRoom, steamConfigured: steamConfigured()  });
 });
 
 app.get('/api/rounds', async (req, res) => {
@@ -165,12 +198,18 @@ app.post('/api/rounds', async (req, res) => {
   if (!round_date || !round_time || !map || !map_condition) {
     return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
   }
+  const extras = parseExtras(req.body);
+  if (extras.error) return res.status(400).json({ error: extras.error });
+
   try {
     const { rows } = await pool.query(
-      `INSERT INTO rounds (round_number, round_date, round_time, map, map_condition, money, xp)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO rounds
+         (round_number, round_date, round_time, map, map_condition, money, xp,
+          loadout, squad_size, round_type, comment)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp]
+      [round_number, round_date, round_time, map, map_condition, money, xp,
+       extras.loadout, extras.squadSize, extras.type, extras.comment]
     );
     res.status(201).json(toApi(rows[0]));
   } catch (err) {
@@ -193,8 +232,12 @@ app.put('/api/rounds/:id', async (req, res) => {
            map = $4,
            map_condition = $5,
            money = $6,
-           xp = $7
-       WHERE id = $8
+           xp = $7,
+           loadout = $8,
+           squad_size = $9,
+           round_type = $10,
+           comment = $11
+       WHERE id = $12
        RETURNING *`,
       [round_number, round_date, round_time, map, map_condition, money, xp, req.params.id]
     );

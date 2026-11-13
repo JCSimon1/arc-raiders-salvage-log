@@ -12,7 +12,7 @@
   "maps": [
     "Blue Gate",
     "Buried City",
-    "Dam Battlegrounds", 
+    "Dam Battlegrounds",
     "Pendola Pass",
     "Riven Tides",
     "Spaceport",
@@ -79,6 +79,7 @@
       "rgba(58, 70, 96, 0.75)"
     ]
   },
+  "roundTypes": ["Quest", "Research", "Project", "Farming", "Free Run"],
   "steam": { "cacheSeconds": 300 },
   "lootCatalog": [
     { "key": "matriarchreactor",   "name": "Matriarch Reactor",  "price": 11000 },
