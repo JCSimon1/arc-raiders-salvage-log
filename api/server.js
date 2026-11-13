@@ -222,23 +222,19 @@ app.put('/api/rounds/:id', async (req, res) => {
   if (!round_date || !round_time || !map || !map_condition) {
     return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
   }
+  const extras = parseExtras(req.body);
+  if (extras.error) return res.status(400).json({ error: extras.error });
+
   try {
     const { rows } = await pool.query(
       `UPDATE rounds
-       SET round_number = $1,
-           round_date = $2,
-           round_time = $3,
-           map = $4,
-           map_condition = $5,
-           money = $6,
-           xp = $7,
-           loadout = $8,
-           squad_size = $9,
-           round_type = $10,
-           comment = $11
+       SET round_number = $1, round_date = $2, round_time = $3, map = $4,
+           map_condition = $5, money = $6, xp = $7,
+           loadout = $8, squad_size = $9, round_type = $10, comment = $11
        WHERE id = $12
        RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp, extras.loadout, extras.squad_size, extras.round_type, extras.comment, req.params.id]
+      [round_number, round_date, round_time, map, map_condition, money, xp,
+       extras.loadout, extras.squadSize, extras.type, extras.comment, req.params.id]
     );
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Runde nicht gefunden.' });
