@@ -802,10 +802,10 @@ function enterEditMode(round){
   $('#f-condition').value = round.condition;
   $('#f-money').value = round.money;
   $('#f-xp').value = round.xp;
-  $('#f-loadout').value = round.loadout;
-  $('#f-squad').value = round.squad_size;
-  $('#f-comment').value = round.comment;
-  $('#f-type').value = round.round_type;
+  $('#f-loadout').value = round.loadout ?? '';
+  $('#f-squad').value   = round.squadSize ?? '';
+  $('#f-type').value    = round.type ?? '';
+  $('#f-comment').value = round.comment ?? '';
   $('#entryPanelTitle').textContent = t('editTitle');
   $('#submitBtn').textContent = t('updateBtn');
   $('#cancelEditBtn').classList.remove('hidden');
@@ -845,7 +845,11 @@ form.addEventListener('submit', async e=>{
     map: $('#f-map').value.trim(),
     condition: $('#f-condition').value.trim(),
     money: Number($('#f-money').value),
-    xp: Number($('#f-xp').value)
+    xp: Number($('#f-xp').value),
+    loadout: optInt('#f-loadout'),
+    squad_size: optInt('#f-squad'),
+    round_type: $('#f-type').value.trim(),
+    comment: $('#f-comment').value.trim()
   };
   try{
     if(isEditing){
@@ -2080,6 +2084,7 @@ $('#importBtn').addEventListener('click', async () => {
   applyStaticTranslations();
   loadSteamProfile();
   renderMapOptions();
+  renderTypeOptions();
   populateFilterOptions();
   prefillForm();
   renderTicker();
