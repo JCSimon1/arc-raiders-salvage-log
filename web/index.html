@@ -833,6 +833,11 @@ $('#cancelEditBtn').addEventListener('click', ()=>{
   exitEditMode();
 });
 
+const optInt = sel => {
+  const v = $(sel).value;
+  return v === '' ? null : Number(v);
+};
+
 form.addEventListener('submit', async e=>{
   e.preventDefault();
   const submitBtn = $('#submitBtn');
