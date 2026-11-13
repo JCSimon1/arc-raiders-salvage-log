@@ -434,7 +434,7 @@ app.get('/api/steam/profile', async (req, res) => {
   }
 });
 
-const CSV_COLUMNS = ['number', 'date', 'time', 'map', 'condition', 'money', 'xp'];
+const CSV_COLUMNS = ['number', 'date', 'time', 'map', 'condition', 'money', 'xp', 'loadout', 'squadSize', 'type', 'comment'];
 
 function csvCell(value, sep) {
   const s = String(value ?? '');
@@ -464,19 +464,21 @@ app.get('/api/export', async (req, res) => {
       return res.send('\uFEFF' + lines.join('\r\n') + '\r\n');
     }
 
-    const [lootRes, rank] = await Promise.all([
-      pool.query('SELECT item_key, amount FROM loot_items ORDER BY item_key'),
-      getSetting('rank')
-    ]);
+    const [lootRes, loadoutRes, rank] = await Promise.all([
+  pool.query('SELECT item_key, amount FROM loot_items ORDER BY item_key'),
+  pool.query('SELECT * FROM loadouts ORDER BY slot'),
+  getSetting('rank')
+]);
 
-    const payload = {
-      app: 'arc-log',
-      schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
-      rounds,
-      loot: lootRes.rows.map(r => ({ key: r.item_key, amount: r.amount })),
-      settings: { rank: rank || null }
-    };
+const payload = {
+  app: 'arc-log',
+  schemaVersion: 1,
+  exportedAt: new Date().toISOString(),
+  rounds,
+  loot: lootRes.rows.map(r => ({ key: r.item_key, amount: r.amount })),
+  loadouts: loadoutRes.rows.map(toLoadoutApi),
+  settings: { rank: rank || null }
+};
 
     res.set({
       'Content-Type': 'application/json; charset=utf-8',
@@ -510,7 +512,19 @@ function parseRound(r) {
   for (const n of [number, money, xp]) {
     if (!Number.isInteger(n) || Math.abs(n) > INT_MAX) return null;
   }
-  return { number, date, time, map, condition, money, xp };
+    const extras = parseExtras({
+    loadout: r.loadout,
+    squad_size: r.squadSize,
+    round_type: r.type,
+    comment: r.comment
+  });
+  if (extras.error) return null;
+
+  return {
+    number, date, time, map, condition, money, xp,
+    loadout: extras.loadout, squadSize: extras.squadSize,
+    type: extras.type, comment: extras.comment
+  };
 }
 
 const roundKey = r => [r.date, r.time, r.number, r.map].join('|');
@@ -566,17 +580,24 @@ app.post('/api/import', async (req, res) => {
 
     if (fresh.length) {
       await client.query(
-        `INSERT INTO rounds (round_number, round_date, round_time, map, map_condition, money, xp)
-         SELECT * FROM unnest($1::int[], $2::date[], $3::time[], $4::text[], $5::text[], $6::int[], $7::int[])`,
-        [
-          fresh.map(r => r.number), fresh.map(r => r.date), fresh.map(r => r.time),
-          fresh.map(r => r.map), fresh.map(r => r.condition),
-          fresh.map(r => r.money), fresh.map(r => r.xp)
-        ]
-      );
-    }
+    `INSERT INTO rounds
+       (round_number, round_date, round_time, map, map_condition, money, xp,
+        loadout, squad_size, round_type, comment)
+     SELECT * FROM unnest(
+       $1::int[], $2::date[], $3::time[], $4::text[], $5::text[], $6::int[], $7::int[],
+       $8::int[], $9::int[], $10::text[], $11::text[])`,
+    [
+      fresh.map(r => r.number), fresh.map(r => r.date), fresh.map(r => r.time),
+      fresh.map(r => r.map), fresh.map(r => r.condition),
+      fresh.map(r => r.money), fresh.map(r => r.xp),
+      fresh.map(r => r.loadout), fresh.map(r => r.squadSize),
+      fresh.map(r => r.type), fresh.map(r => r.comment)
+    ]
+  );
+}
 
     let lootUpdated = null;
+    let loadoutsUpdated = null;
     let rankApplied = false;
 
     if (mode === 'replace') {
@@ -593,6 +614,19 @@ app.post('/api/import', async (req, res) => {
           lootUpdated += r.rowCount;
         }
       }
+      if (Array.isArray(data.loadouts)) {
+  loadoutsUpdated = 0;
+  for (const l of data.loadouts) {
+    if (!isObj(l) || !Number.isInteger(l.slot) || l.slot < 1 || l.slot > 5 ||
+        typeof l.name !== 'string' || !l.name.trim() ||
+        !Number.isInteger(l.value) || l.value < 0 || l.value > INT_MAX) continue;
+    const r = await client.query(
+      'UPDATE loadouts SET name = $1, value = $2, updated_at = now() WHERE slot = $3',
+      [l.name.trim().slice(0, 50), l.value, l.slot]
+    );
+    loadoutsUpdated += r.rowCount;
+  }
+}
       const rank = isObj(data.settings) ? data.settings.rank : undefined;
       if (rank === null || (typeof rank === 'string' &&
           (rank === '' || RANK_CATALOG.some(r => r.key === rank)))) {
@@ -616,6 +650,7 @@ app.post('/api/import', async (req, res) => {
       errors,
       deleted: mode === 'replace' ? existing.rowCount : 0,
       lootUpdated,
+      loadoutsUpdated,
       rankApplied
     });
   } catch (err) {

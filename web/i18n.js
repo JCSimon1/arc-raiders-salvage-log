@@ -114,6 +114,9 @@ const translations = {
     labelLoadoutPreset: 'Loadout-Preset', loadoutNone: '—',
     thName: 'Name', thValue: 'Wert',
     loadoutSaveError: 'Fehler beim Speichern des Loadouts — Server erreichbar?',
+    importPreviewLoadouts: 'Loadout-Presets: {n} Einträge werden überschrieben.',
+    importModeReplaceDesc: 'Löscht alle bestehenden Runden und ersetzt sie durch den Inhalt der Datei. Loot-Mengen, Loadout-Presets und Rang werden ebenfalls überschrieben.',
+    settingsExportHint: 'JSON enthält alles (Runden, Loot, Loadouts, Rang) und eignet sich als Backup. CSV enthält nur die Runden, z. B. für Excel.',
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -230,5 +233,8 @@ const translations = {
     labelLoadoutPreset: 'Loadout preset', loadoutNone: '—',
     thName: 'Name', thValue: 'Value',
     loadoutSaveError: 'Failed to save loadout — is the server reachable?',
+    importPreviewLoadouts: 'Loadout presets: {n} entries will be overwritten.',
+    importModeReplaceDesc: 'Deletes all existing runs and replaces them with the file contents. Loot amounts, loadout presets and rank are overwritten as well.',
+    settingsExportHint: 'JSON contains everything (runs, loot, loadouts, rank) and works as a backup. CSV contains runs only, e.g. for Excel.',
   }
 };

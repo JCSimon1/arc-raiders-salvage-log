@@ -2033,6 +2033,12 @@ function csvToPayload(text){
     idx[field] = header.findIndex(h => names.includes(h));
     if(idx[field] < 0) throw new Error(tpl(t('importCsvHeaders'), { col: names[0] }));
   }
+  const optIdx = {};
+for(const [field, names] of Object.entries(CSV_OPTIONAL)){
+  optIdx[field] = header.findIndex(h => names.includes(h));
+}
+const optCell = (r, field) => optIdx[field] < 0 ? '' : (r[optIdx[field]] ?? '').trim();
+const optNum  = (r, field) => { const v = optCell(r, field); return v === '' ? null : csvInt(v); };
 
   const cell = (r, field) => (r[idx[field]] ?? '');
   const rounds = rows.slice(1).map(r => ({
@@ -2042,7 +2048,11 @@ function csvToPayload(text){
     map: csvMap(cell(r, 'map')),
     condition: csvCondition(cell(r, 'condition')),
     money: csvInt(cell(r, 'money')),
-    xp: csvInt(cell(r, 'xp'))
+    xp: csvInt(cell(r, 'xp')),
+      loadout: optNum(r, 'loadout'),
+  squadSize: optNum(r, 'squadSize'),
+  type: optCell(r, 'type'),
+  comment: optCell(r, 'comment')
   }));
 
   const known = new Set((CONFIG.maps || []).map(m => m.toLowerCase()));
@@ -2082,6 +2092,7 @@ function renderImportPreview(){
   const vars = { new: fmtXP(p.inserted), dup: fmtXP(p.duplicates), del: fmtXP(p.deleted), invalid: fmtXP(p.invalid) };
   const lines = [ tpl(t(p.mode === 'replace' ? 'importPreviewReplace' : 'importPreviewMerge'), vars) ];
   if(p.lootUpdated != null) lines.push(tpl(t('importPreviewLoot'), { n: p.lootUpdated }));
+  if(p.loadoutsUpdated != null) lines.push(tpl(t('importPreviewLoadouts'), { n: p.loadoutsUpdated }));
   if(p.rankApplied) lines.push(t('importPreviewRank'));
   if(p.errors.length) lines.push(tpl(t('importPreviewInvalidRows'), { rows: p.errors.join(', ') }));
   importNotes.forEach(n => lines.push(n));
@@ -2143,7 +2154,8 @@ $('#importBtn').addEventListener('click', async () => {
   updateImportUI();
   try{
     const result = await postImport(false);
-    await Promise.all([loadRounds(), loadLoot(), loadSettings()]);
+    await Promise.all([loadRounds(), loadLoot(), loadSettings(), loadLoadouts()]);
+    populateLoadoutSelect();
     renderProfile();
     exitEditMode();
     refreshAll();
