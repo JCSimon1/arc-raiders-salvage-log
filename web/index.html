@@ -607,6 +607,73 @@ async function saveLootAmount(key, amount){
   if(!res.ok) throw new Error('loot save failed');
   return res.json();
 }
+let loadouts = [];
+
+async function loadLoadouts(){
+  const res = await fetch('/api/loadouts');
+  if(!res.ok) throw new Error('loadouts load failed');
+  loadouts = await res.json();
+}
+
+function populateLoadoutSelect(){
+  const sel = $('#f-loadout-preset');
+  if(!sel) return;
+  sel.innerHTML = `<option value="">${t('loadoutNone')}</option>` +
+    loadouts.map(l => `<option value="${l.slot}">${escapeHTML(l.name)} (${fmtMoney(l.value)})</option>`).join('');
+}
+
+$('#f-loadout-preset').addEventListener('change', e => {
+  const l = loadouts.find(x => String(x.slot) === e.target.value);
+  if(l) $('#f-loadout').value = l.value;
+});
+
+function renderLoadouts(){
+  $('#loadoutsTableWrap').innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>${t('thName')}</th><th class="center">${t('thValue')}</th></tr></thead>
+      <tbody>${loadouts.map(l => `
+        <tr>
+          <td>${l.slot}</td>
+          <td><input type="text" class="loot-amount-input loadout-name" style="width:220px;text-align:left"
+               maxlength="50" data-slot="${l.slot}" value="${escapeHTML(l.name)}"></td>
+          <td class="num"><input type="number" class="loot-amount-input loadout-value" style="width:130px"
+               min="0" step="1" data-slot="${l.slot}" value="${l.value}"></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  document.querySelectorAll('#loadoutsTableWrap input').forEach(input => {
+    input.addEventListener('input', () => {
+      const slot = Number(input.dataset.slot);
+      const l = loadouts.find(x => x.slot === slot);
+      const row = input.closest('tr');
+      l.name = row.querySelector('.loadout-name').value.trim();
+      l.value = Math.max(0, Math.round(Number(row.querySelector('.loadout-value').value) || 0));
+      clearTimeout(lootSaveTimers['lo' + slot]);
+      lootSaveTimers['lo' + slot] = setTimeout(() => saveLoadout(l), 400);
+    });
+  });
+}
+
+async function saveLoadout(l){
+  if(!l.name) return;
+  try{
+    const res = await fetch('/api/loadouts/' + l.slot, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: l.name, value: l.value })
+    });
+    if(!res.ok) throw new Error('save failed');
+    populateLoadoutSelect();
+    setStatus('ok');
+  }catch(err){
+    const msg = $('#loadoutsMsg');
+    msg.textContent = t('loadoutSaveError');
+    msg.classList.remove('ok');
+    msg.classList.add('err','show');
+    setTimeout(()=>msg.classList.remove('show'), 2200);
+    setStatus('err');
+  }
+}
 
 function rankImgSrc(key){ return '/images/ranks/' + key + '.webp'; }
 
@@ -2112,11 +2179,11 @@ $('#importBtn').addEventListener('click', async () => {
   try{
     await loadRounds();
     await loadLoot();
+    await loadLoadouts();
     setStatus('ok');
   }catch(err){
     setStatus('err');
   }
-  try{ await loadLoadouts(); }catch(e){}
   try{
     await loadSettings();
   }catch(err){
