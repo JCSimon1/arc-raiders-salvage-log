@@ -238,7 +238,7 @@ app.put('/api/rounds/:id', async (req, res) => {
            comment = $11
        WHERE id = $12
        RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp, req.params.id]
+      [round_number, round_date, round_time, map, map_condition, money, xp, loadout, squad_size, round_type, comment, req.params.id]
     );
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Runde nicht gefunden.' });
