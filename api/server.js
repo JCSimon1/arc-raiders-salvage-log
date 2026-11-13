@@ -94,6 +94,16 @@ const SCHEMA = `
     value TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  CREATE TABLE IF NOT EXISTS loadouts (
+    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 5),
+    name TEXT NOT NULL DEFAULT '',
+    value INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+  INSERT INTO loadouts (slot, name)
+    SELECT g, 'Loadout ' || g FROM generate_series(1, 5) g
+    ON CONFLICT (slot) DO NOTHING;
 `;
 
 async function seedLootCatalog() {
@@ -288,6 +298,38 @@ app.put('/api/loot/:key', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Konnte Menge nicht aktualisieren.' });
+  }
+});
+
+// ---------- Loadouts --------------------
+const toLoadoutApi = r => ({ slot: r.slot, name: r.name, value: r.value });
+
+app.get('/api/loadouts', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM loadouts ORDER BY slot');
+    res.json(rows.map(toLoadoutApi));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Loadouts nicht laden.' });
+  }
+});
+
+app.put('/api/loadouts/:slot', async (req, res) => {
+  const name = typeof req.body.name === 'string' ? req.body.name.trim().slice(0, 50) : '';
+  const value = Number(req.body.value);
+  if (!name) return res.status(400).json({ error: 'Name fehlt.' });
+  if (!Number.isInteger(value) || value < 0 || value > INT_MAX)
+    return res.status(400).json({ error: 'Ungültiger Wert.' });
+  try {
+    const { rows } = await pool.query(
+      `UPDATE loadouts SET name = $1, value = $2, updated_at = now()
+       WHERE slot = $3 RETURNING *`,
+      [name, value, req.params.slot]);
+    if (!rows.length) return res.status(404).json({ error: 'Slot nicht gefunden.' });
+    res.json(toLoadoutApi(rows[0]));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Konnte Loadout nicht speichern.' });
   }
 });
 

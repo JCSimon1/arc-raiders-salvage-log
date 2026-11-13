@@ -109,6 +109,11 @@ const translations = {
     importCsvEmpty: 'Die CSV-Datei ist leer.',
     importCsvHeaders: 'Spalte „{col}“ fehlt in der CSV-Kopfzeile.',
     importNoteMaps: 'Unbekannte Maps (nicht in der Config, ohne Bild): {maps}',
+    navLoadouts: 'Loadouts', loadoutsTitle: 'Loadout-Presets',
+    loadoutsHint: 'Gesamtwert des Loadouts zu Rundenstart. In der Runde wird nur dieser Wert gespeichert.',
+    labelLoadoutPreset: 'Loadout-Preset', loadoutNone: '—',
+    thName: 'Name', thValue: 'Wert',
+    loadoutSaveError: 'Fehler beim Speichern des Loadouts — Server erreichbar?',
   },
   en: {
     brandTag: 'RUN TRACKER',
@@ -220,5 +225,10 @@ const translations = {
     importCsvEmpty: 'The CSV file is empty.',
     importCsvHeaders: 'Column “{col}” is missing in the CSV header.',
     importNoteMaps: 'Unknown maps (not in config, no image): {maps}',
+    navLoadouts: 'Loadouts', loadoutsTitle: 'Loadout presets',
+    loadoutsHint: 'Total loadout value at round start. Only this value is stored with the run.',
+    labelLoadoutPreset: 'Loadout preset', loadoutNone: '—',
+    thName: 'Name', thValue: 'Value',
+    loadoutSaveError: 'Failed to save loadout — is the server reachable?',
   }
 };
