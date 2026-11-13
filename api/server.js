@@ -208,7 +208,7 @@ app.post('/api/rounds', async (req, res) => {
           loadout, squad_size, round_type, comment)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        RETURNING *`,
-      [round_number, round_date, round_time, map, map_condition, money, xp, extras.loadout, extras.squadSize, extras.type, extras.comment, req.params.id]
+      [round_number, round_date, round_time, map, map_condition, money, xp, extras.loadout, extras.squadSize, extras.type, extras.comment]
     );
     res.status(201).json(toApi(rows[0]));
   } catch (err) {
