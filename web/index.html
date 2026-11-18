@@ -1969,7 +1969,14 @@ const CSV_HEADERS = {
   money:     ['$', 'money', 'geld'],
   xp:        ['xp']
 };
-// Schreibweisen aus der eigenen Tabelle → Name in der App (Kleinbuchstaben als Schlüssel)
+
+const CSV_OPTIONAL = {
+  loadout:   ['loadout'],
+  squadSize: ['squadsize', 'squad size', 'squad'],
+  type:      ['type', 'round type', 'rundentyp', 'typ'],
+  comment:   ['comment', 'kommentar']
+};
+
 const MAP_ALIASES = { dam: 'Dam Battlegrounds' };
 const CONDITION_ALIASES = { None: 'Clear' };
 
